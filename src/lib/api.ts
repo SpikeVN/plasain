@@ -129,8 +129,49 @@ export async function uploadDishImage(image: string): Promise<string> {
   return (await response.json() as { image: string }).image;
 }
 
-export async function createPlan(goal: string): Promise<Dish[]> {
-  const response = await fetch(`${API_URL}/api/plan`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers() }, body: JSON.stringify({ goal }) });
+export type PlanResult = { meals: Dish[]; source: string; reply?: string };
+export type SavedPlan = PlanResult & { id: number; goal: string; created_at: string };
+
+export async function createPlan(goal: string, dishes: Dish[] = [], prompt = '', language: 'en' | 'vi' = 'en'): Promise<PlanResult> {
+  const response = await fetch(`${API_URL}/api/plan`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers() }, body: JSON.stringify({ goal, dishes, prompt, language }) });
   if (!response.ok) throw new Error(await responseError(response));
-  return (await response.json() as { meals: Dish[] }).meals;
+  return await response.json() as PlanResult;
+}
+
+export async function streamPlan(goal: string, dishes: Dish[], prompt: string, language: 'en' | 'vi', onToken: (text: string) => void): Promise<PlanResult> {
+  const response = await fetch(`${API_URL}/api/plan/stream`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers() }, body: JSON.stringify({ goal, dishes, prompt, language }) });
+  if (!response.ok || !response.body) throw new Error(await responseError(response));
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let plan: PlanResult | undefined;
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+    const events = buffer.split('\n\n');
+    buffer = events.pop() ?? '';
+    for (const event of events) {
+      const type = event.match(/^event: (.+)$/m)?.[1];
+      const data = event.match(/^data: (.+)$/m)?.[1];
+      if (!type || !data) continue;
+      const payload = JSON.parse(data) as PlanResult & { text?: string };
+      if (type === 'token' && payload.text) onToken(payload.text);
+      if (type === 'plan') plan = payload;
+    }
+    if (done) break;
+  }
+  if (!plan) throw new Error('The AI response ended before a plan was returned.');
+  return plan;
+}
+
+export async function savePlan(goal: string, meals: Dish[]): Promise<PlanResult> {
+  const response = await fetch(`${API_URL}/api/plans`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers() }, body: JSON.stringify({ goal, meals }) });
+  if (!response.ok) throw new Error(await responseError(response));
+  return await response.json() as PlanResult;
+}
+
+export async function fetchPlans(): Promise<SavedPlan[]> {
+  const response = await fetch(`${API_URL}/api/plans`, { headers: headers() });
+  if (!response.ok) throw new Error(await responseError(response));
+  return (await response.json() as { plans: SavedPlan[] }).plans;
 }

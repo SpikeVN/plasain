@@ -8,8 +8,8 @@ messages:
   username: Tên người dùng
   password: Mật khẩu
   welcomeBack: Chào mừng bạn quay lại
-  newHere: Chưa có tài khoản? Tạo tài khoản
-  haveAccount: Đã có tài khoản? Đăng nhập
+  newHere: Tạo tài khoản
+  haveAccount: Đăng nhập
   accountIntro: Đăng nhập để lập kế hoạch và thêm món ăn của bạn.
   close: Đóng
   choosePhoto: Chọn ảnh đại diện
@@ -106,3 +106,30 @@ messages:
   filterTagsCopy: Chọn một hoặc nhiều thẻ. Món ăn phải có tất cả thẻ đã chọn.
   clearFilters: Xóa bộ lọc
   noMatchingDishes: Không có món ăn phù hợp với các thẻ này.
+  today: Hôm nay
+  plannerDate: Thứ Hai, 05/01
+  logMeal: Ghi bữa ăn
+  addDishFromCatalog: Thêm món từ Quả cầu pha lê của bạn
+  chooseDish: Chọn món ăn
+  add: Thêm
+  noMealsLogged: Nhấn vào đây để ghi bữa ăn.
+  aiRecommendations: Gợi ý từ AI
+  aiThinking: Đang nghĩ
+  aiSuggestionsReady: Các gợi ý AI của bạn đã sẵn sàng để xem.
+  askAi: Hỏi AI
+  planLogged: Đã lưu kế hoạch.
+  aiAddedToPlan: Đã thêm gợi ý AI vào kế hoạch của bạn.
+  aiDismissed: Đã bỏ qua gợi ý AI.
+  dishAlreadyLogged: đã được ghi lại.
+  plannerLoadError: Không thể tải kế hoạch của bạn.
+  plannerSaveError: Không thể lưu kế hoạch của bạn.
+  aiSuggestionFallback: Đây là một số món phù hợp với yêu cầu của bạn.
+  aiUnavailable: Tôi chưa thể đưa ra gợi ý ngay bây giờ. Vui lòng thử lại.
+  aiConnectionError: Không thể kết nối với trợ lý lập kế hoạch.
+  editPlan: Chỉnh sửa kế hoạch
+  doneEditing: Xong
+  clickDishToRemove: Nhấn vào món để xóa.
+  logMealTitle: Ghi bữa ăn
+  searchDishes: Tìm món ăn của bạn
+  chooseDishToAdd: Chọn một món để thêm vào hôm nay.
+  noDishesFound: Không tìm thấy món ăn.

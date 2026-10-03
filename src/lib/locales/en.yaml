@@ -8,8 +8,8 @@ messages:
   username: Username
   password: Password
   welcomeBack: Welcome back
-  newHere: New here? Create an account
-  haveAccount: Already have an account? Sign in
+  newHere: Create an account
+  haveAccount: Sign in
   accountIntro: Sign in to plan meals and add dishes from your kitchen.
   close: Close
   choosePhoto: Choose a profile photo
@@ -106,3 +106,30 @@ messages:
   filterTagsCopy: Select one or more tags. A dish must have every selected tag.
   clearFilters: Clear filters
   noMatchingDishes: No dishes match these tags.
+  today: Today
+  plannerDate: Monday, 05/01
+  logMeal: Log meal
+  addDishFromCatalog: Add a dish from your Crystal Ball
+  chooseDish: Choose a dish
+  add: Add
+  noMealsLogged: Tap here to log a meal.
+  aiRecommendations: AI recommendations
+  aiThinking: Thinking
+  aiSuggestionsReady: Your AI suggestions are ready to review.
+  askAi: Ask AI
+  planLogged: Plan logged.
+  aiAddedToPlan: AI recommendations added to your plan.
+  aiDismissed: AI recommendations dismissed.
+  dishAlreadyLogged: is already logged.
+  plannerLoadError: Could not load your planner.
+  plannerSaveError: Could not save your plan.
+  aiSuggestionFallback: Here are some dishes that fit your request.
+  aiUnavailable: I could not make a recommendation just now. Please try again.
+  aiConnectionError: Could not contact the planner assistant.
+  editPlan: Edit plan
+  doneEditing: Done
+  clickDishToRemove: Click a dish to remove it.
+  logMealTitle: Log a meal
+  searchDishes: Search your dishes
+  chooseDishToAdd: Select a dish to add it to today.
+  noDishesFound: No dishes found.

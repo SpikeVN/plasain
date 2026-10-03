@@ -1,8 +1,498 @@
 @layer components {
-  .dish-image img { width:100%; height:100%; object-fit:cover; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
-  .dish-card { position:relative; display:flex; min-height:118px; gap:14px; margin:12px 0; padding:14px; overflow:hidden; border:1px solid #e5decc; border-radius:20px; background:#fffdf8; }.dish-image { display:grid; flex:0 0 74px; border-radius:15px; background:#f1efe5; font-size:38px; place-items:center; }.dish-copy { min-width:0; }.dish-copy .eyebrow { font-size:9px; }.dish-copy h3 { margin:4px 0; color:#76613c; font:700 15px var(--font-display); }.dish-copy p { margin:0 0 7px; color:#948b77; font-size:11px; line-height:1.35; }.dish-macros { display:flex; gap:10px; color:#728569; font-size:10px; font-weight:600; }
-  .goal-panel { padding:19px; border:1px solid #e5decc; border-radius:22px; background:#fffdf8; }.goal-panel label { display:block; margin-bottom:11px; }.goal-panel select { width:100%; padding:12px; appearance:none; border:1px solid #dcd5c4; border-radius:12px; background:#f9f6ed url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='m3 5 4 4 4-4' fill='none' stroke='%23728569' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center; color:#76613c; font-weight:600; }.goal-panel p { margin:10px 0 0; color:#9b927e; font-size:12px; }
-  .planner-stats { display:grid; grid-template-columns:repeat(3,1fr); margin:17px 0; padding:16px 6px; border:1px solid #dfe2d8; border-radius:18px; background:#f0f2ed; text-align:center; }.planner-stats div + div { border-left:1px solid #d5d8cc; }.planner-stats b,.planner-stats span { display:block; }.planner-stats b { color:#728569; font:700 15px var(--font-display); }.planner-stats span { margin-top:4px; color:#99917e; font-size:10px; }.planner-cta { margin-top:0; }.planner-empty { display:grid; min-height:100px; margin-top:18px; border:1px dashed #ded5bd; border-radius:20px; color:#9e947f; font-size:12px; place-content:center; text-align:center; }.planner-empty span { color:#b8a46e; font-size:24px; }.planner-empty p { margin:5px 15px; }.plan-results { margin-top:24px; }
-  .dish-manager { margin-top:26px; padding:19px; border:1px solid #e5decc; border-radius:22px; background:#fffdf8; }.account-copy { margin:10px 0 14px; color:#948b77; font-size:12px; line-height:1.4; }.compact-form { display:grid; gap:9px; }.compact-form input,.compact-form textarea { width:100%; padding:11px 12px; border:1px solid #dcd5c4; border-radius:12px; background:#f9f6ed; color:#514a3a; font:inherit; font-size:13px; }.compact-form textarea { min-height:72px; resize:vertical; }.compact-form .primary-button { margin-top:3px; padding:12px 16px; }.macro-inputs { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }.text-button { padding:7px 0; border:0; background:none; color:#728569; cursor:pointer; font:600 11px var(--font-body); text-align:left; }.dish-manager > .text-button { margin-top:7px; }.section-title .text-button { padding:0; font-size:10px; }
-  .planner-auth-gate { display:grid; min-height:calc(100svh - 150px); padding:40px 20px; text-align:center; place-content:center; }.planner-auth-gate > span { color:#c39c5b; font-size:30px; }.planner-auth-gate h2 { margin:12px 0 8px; color:#76613c; font:700 24px var(--font-display); }.planner-auth-gate p { max-width:260px; margin:0 auto; color:#948b77; font-size:13px; line-height:1.5; }.planner-auth-gate .primary-button { margin-top:22px; }
+  .planner-screen {
+    display: flex;
+    height: 100svh;
+    min-height: 100svh;
+    max-height: 100svh;
+    padding: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+  }
+  .planner-canvas {
+    position: relative;
+    min-height: 0;
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .planner-day {
+    width: min(100% - 80px, 560px);
+    margin: 30px 40px 270px;
+  }
+  .planner-day-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .planner-day-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .planner-day-heading p {
+    margin: 0 0 3px;
+    color: #c39c5b;
+    font: 700 11px var(--font-body);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  .planner-day-heading h2 {
+    margin: 0;
+    color: #17140e;
+    font: 700 16px var(--font-display);
+  }
+  .planner-manual-trigger,
+  .planner-edit-trigger {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #76613c;
+    cursor: pointer;
+    place-items: center;
+  }
+  .planner-edit-trigger.active {
+    color: #ef944f;
+  }
+  .planner-edit-hint {
+    margin: -4px 0 12px;
+    color: #998b72;
+    font-size: 12px;
+  }
+  .planner-meal-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 155px));
+    gap: 11px;
+  }
+  .planner-meal.is-editing {
+    cursor: pointer;
+    outline: 2px dashed #ef944f;
+    outline-offset: 3px;
+  }
+  .planner-meal.is-editing:hover {
+    transform: translateY(-2px);
+  }
+  .planner-empty {
+    display: grid;
+    min-height: 120px;
+    width: 100%;
+    padding: 20px;
+    border: 1px dashed #c8c4b7;
+    border-radius: 18px;
+    background: transparent;
+    color: #998b72;
+    cursor: pointer;
+    text-align: center;
+    place-content: center;
+  }
+  .planner-empty:hover,
+  .planner-empty:focus-visible {
+    border-color: #c39c5b;
+    color: #76613c;
+  }
+  .planner-empty p {
+    margin: 8px 18px 0;
+    font-size: 13px;
+  }
+  .planner-manual-overlay {
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    display: grid;
+    padding: 24px;
+    overflow: auto;
+    background: #302c2138;
+    place-items: center;
+  }
+  .planner-manual-dialog {
+    position: relative;
+    box-sizing: border-box;
+    width: min(100%, 370px);
+    max-height: calc(100% - 20px);
+    overflow: auto;
+    padding: 22px;
+    border: 1px solid #d8caa9;
+    border-radius: 20px;
+    background: #e8dfc8;
+    box-shadow: 0 18px 50px #1f1b1455;
+  }
+  .planner-manual-dialog > h2 {
+    margin: 0 32px 16px 0;
+    color: #76613c;
+    font: 700 20px var(--font-display);
+  }
+  .planner-manual-close {
+    position: absolute;
+    top: 12px;
+    right: 13px;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #76613c;
+    cursor: pointer;
+    place-items: center;
+  }
+  .planner-dish-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid #dcd5c4;
+    border-radius: 12px;
+    background: #f9f6ed;
+    color: #8c826d;
+  }
+  .planner-dish-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #514a3a;
+    font: 400 14px var(--font-body);
+  }
+  .planner-dish-results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 155px));
+    gap: 11px;
+    min-width: 0;
+    max-height: 390px;
+    margin-top: 16px;
+    overflow: auto;
+    padding: 2px;
+    scrollbar-color: #aaa79f transparent;
+    scrollbar-width: thin;
+  }
+  .planner-dish-results::-webkit-scrollbar {
+    width: 6px;
+  }
+  .planner-dish-results::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .planner-dish-results::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background: #aaa79f;
+  }
+  .planner-dish-results::-webkit-scrollbar-button {
+    display: none;
+  }
+  .planner-dish-results .planner-meal {
+    width: 155px;
+    max-width: 100%;
+    flex: 0 0 155px;
+    min-width: 0;
+    cursor: pointer;
+  }
+  .planner-dish-results > p {
+    grid-column: 1 / -1;
+    margin: 18px 0;
+    color: #948b77;
+    font-size: 13px;
+    text-align: center;
+  }
+  @media (max-width: 390px) {
+    .planner-dish-results {
+      grid-template-columns: 155px;
+      justify-content: center;
+    }
+  }
+  .planner-chatbox {
+    position: absolute;
+    z-index: 6;
+    bottom: 18px;
+    left: 50%;
+    width: min(360px, calc(100% - 36px));
+    max-width: calc(100% - 36px);
+    transform: translateX(-50%);
+  }
+  .planner-prompt {
+    display: flex;
+    min-height: 55px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 24px;
+    border: 1px solid #c39c5b;
+    border-radius: 28px;
+    background: #ffedc6;
+    box-shadow: 0 8px 24px #76613c26;
+  }
+  .planner-prompt textarea {
+    display: block;
+    min-width: 0;
+    min-height: 20px;
+    max-height: 96px;
+    flex: 1;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    resize: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c39c5b transparent;
+    background: transparent;
+    color: #17140e;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    font: 400 14px/1.4 var(--font-body);
+  }
+  .planner-prompt textarea::-webkit-scrollbar {
+    width: 4px;
+  }
+  .planner-prompt textarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .planner-prompt textarea::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    background: #c39c5b;
+  }
+  .planner-prompt button {
+    display: grid;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #e9bd5a;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.42;
+    transition:
+      background 0.16s ease,
+      opacity 0.16s ease;
+    place-items: center;
+  }
+  .planner-prompt.has-text button {
+    background: #c99029;
+    opacity: 1;
+  }
+  .planner-prompt button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+  .planner-prompt.is-multiline button {
+    align-self: flex-start;
+  }
+  .planner-thinking {
+    display: grid;
+    flex: 1;
+    color: #8f7950;
+    font-size: 14px;
+    animation: planner-thinking-enter 0.24s ease-out both;
+    place-items: center;
+  }
+  .planner-thinking-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .planner-thinking i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: planner-thinking-dot 0.9s ease-in-out infinite;
+  }
+  .planner-thinking i:first-of-type {
+    margin-left: 6px;
+  }
+  .planner-thinking i:nth-of-type(2) {
+    animation-delay: 0.12s;
+  }
+  .planner-thinking i:nth-of-type(3) {
+    animation-delay: 0.24s;
+  }
+  .inline-notice {
+    margin: 7px 0 0;
+    color: #76613c;
+    font-size: 11px;
+    text-align: center;
+  }
+  .planner-recommendation {
+    --receipt-size: 8px;
+    position: fixed;
+    z-index: 5;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: calc(100% - 76px);
+    min-height: 290px;
+    overflow: hidden;
+    padding: 24px 18px 106px;
+    background: #e8dfc8;
+    isolation: isolate;
+    touch-action: none;
+    -webkit-mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+        top / var(--receipt-size) var(--receipt-size) repeat-x,
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--receipt-size))
+        no-repeat;
+    mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+        top / var(--receipt-size) var(--receipt-size) repeat-x,
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--receipt-size))
+        no-repeat;
+    animation: planner-ai-sheet-reveal 0.48s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  .planner-recommendation::before {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to bottom, #e8dfc8 0 2px, #f3ead8 2px);
+    content: "";
+    -webkit-mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+        top / var(--receipt-size) var(--receipt-size) repeat-x,
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--receipt-size))
+        no-repeat;
+    mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+        top / var(--receipt-size) var(--receipt-size) repeat-x,
+      linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--receipt-size))
+        no-repeat;
+  }
+  .planner-recommendation-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .planner-recommendation-inner > h2 {
+    margin: 0;
+    color: #c39c5b;
+    font: 700 18px var(--font-display);
+    text-align: center;
+  }
+  .planner-recommendation-close {
+    position: absolute;
+    top: -3px;
+    right: 0;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #76613c;
+    cursor: pointer;
+    place-items: center;
+  }
+  .planner-ai-reply {
+    margin: 7px auto 18px;
+    color: #76613c;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: center;
+  }
+  .planner-recommendation-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 155px));
+    justify-content: center;
+    gap: 11px;
+    padding: 2px 2px 8px;
+  }
+  .planner-recommendation-cards .planner-meal {
+    width: 155px;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .planner-recommendation-card {
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+  }
+  .planner-recommendation-card:hover {
+    transform: translateY(-3px);
+  }
+  .planner-recommendation-card.is-adding {
+    pointer-events: none;
+    animation: planner-recommendation-card-added 0.28s ease-in both;
+  }
+  .planner-recommendation.is-dismissing {
+    pointer-events: none;
+    animation: none;
+    translate: 0 calc(100% + 32px);
+    transition: translate 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  .planner-auth-gate {
+    display: grid;
+    min-height: calc(100svh - 150px);
+    padding: 40px 20px;
+    text-align: center;
+    place-content: center;
+  }
+  .planner-auth-gate > span {
+    color: #c39c5b;
+    font-size: 30px;
+  }
+  .planner-auth-gate h2 {
+    margin: 12px 0 8px;
+    color: #76613c;
+    font: 700 24px var(--font-display);
+  }
+  .planner-auth-gate p {
+    max-width: 260px;
+    margin: 0 auto;
+    color: #948b77;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .planner-auth-gate .primary-button {
+    margin-top: 22px;
+  }
+  @keyframes planner-ai-sheet-reveal {
+    from {
+      transform: translateY(105%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes planner-thinking-enter {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes planner-thinking-dot {
+    50% {
+      transform: translateY(-4px);
+      opacity: 0.35;
+    }
+  }
+  @keyframes planner-recommendation-card-added {
+    to {
+      transform: translateY(-72px) scale(0.72);
+      opacity: 0;
+    }
+  }
+  @media (max-width: 500px) {
+    .planner-day {
+      width: auto;
+      margin: 24px 24px 130px;
+    }
+    .planner-meal-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .planner-meal {
+      width: auto;
+    }
+  }
 }

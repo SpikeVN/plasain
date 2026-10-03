@@ -6,6 +6,13 @@ from pydantic import BaseModel, Field
 class PlanRequest(BaseModel):
     goal: str = "Balanced"
     dishes: list[dict[str, Any]] = Field(default_factory=list)
+    prompt: str = Field(default="", max_length=1_000)
+    language: Literal["en", "vi"] = "en"
+
+
+class PlanSaveRequest(BaseModel):
+    goal: str = Field(default="Balanced", max_length=100)
+    meals: list[dict[str, Any]] = Field(default_factory=list, max_length=12)
 
 
 class Credentials(BaseModel):

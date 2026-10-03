@@ -1,28 +1,178 @@
 @layer components {
-  .home-screen { display:flex; flex-direction:column; justify-content:center; height:100svh; min-height:100svh; max-height:100%; padding:24px 33px; overflow:hidden; animation:screen-fade-in .28s ease-out both; }
-  .home-brand { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; text-align:left; }
-  .home-brand h1 { margin:0; color:var(--color-ink); font:700 24px var(--font-display); }
-  .user-button { display:grid; width:42px; height:42px; border:1px solid #d8d4c6; border-radius:50%; background:#fffdf7; color:#728569; cursor:pointer; place-items:center; }
-  .user-avatar { width:100%; height:100%; border-radius:50%; object-fit:cover; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
-  .menu-list { display:grid; gap:15px; }
-  .menu-card { position:relative; width:100%; height:131px; padding:21px 25px; overflow:hidden; border:1px solid #e5decc; border-radius:31px; background:#fffdf7; cursor:pointer; text-align:left; transition:transform .2s ease; }
-  .menu-card, .menu-card *, .brand-sticker { user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
-  .menu-card:hover { transform:rotate(-.6deg); }
-  .menu-text { position:relative; z-index:1; width:68%; }
-  .menu-text h2 { margin:0 0 8px; color:#c39c5b; font:700 18px var(--font-display); }
-  .menu-text p { max-width:205px; margin:0; color:#94855d; font-size:13px; line-height:1.4; }
-  .card-arrow { position:absolute; top:1px; right:-50px; font-size:16px; opacity:.65; }
-  .crystal-menu { background:linear-gradient(110deg,#fffdf8 48%,#f1f0e5); }
-  .menu-art { position:absolute; display:block; object-fit:contain; pointer-events:none; }
-  .crystal-art { right:-12px; bottom:-12px; width:160px; height:154px; object-fit:cover; object-position:left center; }
-  .planner-menu, .regressor-menu { height:115px; border-color:#d2d5cd; background:#f0f2ed; }
-  .planner-menu .menu-text { width:58%; margin-left:118px; }
-  .planner-menu .menu-text h2, .regressor-menu .menu-text h2 { color:#698242; }
-  .planner-art { bottom:-12px; left:-10px; width:128px; height:138px; }
-  .regressor-menu .menu-text { width:67%; }
-  .regressor-art { right:-9px; bottom:-14px; width:130px; height:140px; }
-  .home-hint { max-width:190px; margin:31px auto 0; color:#8c826d; font:italic 13px var(--font-display); text-align:center; }
-  .brand-sticker { position:relative; display:block; flex:none; width:164px; height:164px; margin:22px auto 0; object-fit:contain; }
+  .home-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100svh;
+    min-height: 100svh;
+    max-height: 100%;
+    padding: 24px 33px;
+    overflow: hidden;
+    animation: screen-fade-in 0.28s ease-out both;
+  }
+  .home-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    text-align: left;
+  }
+  .home-brand h1 {
+    margin: 0;
+    color: var(--color-ink);
+    font: 700 24px var(--font-display);
+  }
+  .user-button {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #d8d4c6;
+    border-radius: 50%;
+    background: #fffdf7;
+    color: #728569;
+    cursor: pointer;
+    place-items: center;
+  }
+  .user-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+  .menu-list {
+    display: grid;
+    gap: 15px;
+  }
+  .menu-card {
+    position: relative;
+    width: 100%;
+    height: 131px;
+    padding: 21px 25px;
+    overflow: hidden;
+    border: 1px solid #e5decc;
+    border-radius: 31px;
+    background: #fffdf7;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.2s ease;
+  }
+  .menu-card,
+  .menu-card *,
+  .brand-sticker {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+  .menu-card:hover {
+    transform: rotate(-0.6deg);
+  }
+  .menu-text {
+    position: relative;
+    z-index: 1;
+    width: 68%;
+  }
+  .menu-text h2 {
+    margin: 0 0 8px;
+    color: #c39c5b;
+    font: 700 18px var(--font-display);
+  }
+  .menu-text p {
+    max-width: 205px;
+    margin: 0;
+    color: #94855d;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .card-arrow {
+    position: absolute;
+    top: 1px;
+    right: -50px;
+    font-size: 16px;
+    opacity: 0.65;
+  }
+  .crystal-menu {
+    background: linear-gradient(110deg, #fffdf8 48%, #f1f0e5);
+  }
+  .menu-art {
+    position: absolute;
+    display: block;
+    object-fit: contain;
+    pointer-events: none;
+  }
+  .crystal-art {
+    right: -12px;
+    bottom: -12px;
+    width: 160px;
+    height: 154px;
+    object-fit: cover;
+    object-position: left center;
+  }
+  .planner-menu,
+  .regressor-menu {
+    height: 115px;
+    border-color: #d2d5cd;
+    background: #f0f2ed;
+  }
+  .planner-menu .menu-text {
+    width: 58%;
+    margin-left: 118px;
+  }
+  .planner-menu .menu-text h2,
+  .regressor-menu .menu-text h2 {
+    color: #698242;
+  }
+  .planner-art {
+    bottom: -12px;
+    left: -10px;
+    width: 128px;
+    height: 138px;
+  }
+  .regressor-menu .menu-text {
+    width: 67%;
+  }
+  .regressor-art {
+    right: -9px;
+    bottom: -14px;
+    width: 130px;
+    height: 140px;
+  }
+  .home-hint {
+    max-width: 190px;
+    margin: 31px auto 0;
+    color: #8c826d;
+    font: italic 13px var(--font-display);
+    text-align: center;
+  }
+  .brand-sticker {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 164px;
+    height: 164px;
+    margin: 22px auto 0;
+    object-fit: contain;
+  }
 }
 
-@media (max-height:740px) { .home-screen { padding:10px 33px; }.home-brand { margin-bottom:12px; }.menu-list { gap:11px; }.home-hint { margin-top:21px; }.brand-sticker { width:114px; height:114px; margin-top:12px; } }
+@media (max-height: 740px) {
+  .home-screen {
+    padding: 10px 33px;
+  }
+  .home-brand {
+    margin-bottom: 12px;
+  }
+  .menu-list {
+    gap: 11px;
+  }
+  .home-hint {
+    margin-top: 21px;
+  }
+  .brand-sticker {
+    width: 114px;
+    height: 114px;
+    margin-top: 12px;
+  }
+}

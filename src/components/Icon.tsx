@@ -1,15 +1,15 @@
 import { For } from 'solid-js';
 import { Dynamic } from '@solidjs/web';
 import {
-  ArrowLeft, ArrowRight, ArrowUpRight, CircleHelp, Funnel, Leaf, LogOut, Menu, Moon,
-  Pencil, Plus, RotateCcw, Sparkles, Trash2, Utensils, UserRound, X,
+  ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, CalendarDays, Check, CircleHelp, Funnel, Leaf, LogOut, Menu, Moon,
+  Pencil, Plus, RotateCcw, Search, Sparkles, Trash2, Utensils, UserRound, X,
 } from 'lucide';
 
 const icons = {
-  arrowLeft: ArrowLeft, arrowRight: ArrowRight, arrowUpRight: ArrowUpRight,
+  arrowLeft: ArrowLeft, arrowRight: ArrowRight, arrowUp: ArrowUp, arrowUpRight: ArrowUpRight,
   sparkles: Sparkles, moon: Moon, circleHelp: CircleHelp, leaf: Leaf,
-  utensils: Utensils, rotate: RotateCcw, userRound: UserRound, logOut: LogOut,
-  plus: Plus, x: X, menu: Menu, funnel: Funnel, pencil: Pencil, trash: Trash2,
+  utensils: Utensils, calendar: CalendarDays, rotate: RotateCcw, userRound: UserRound, logOut: LogOut,
+  plus: Plus, check: Check, x: X, menu: Menu, funnel: Funnel, pencil: Pencil, search: Search, trash: Trash2,
 };
 
 type IconNode = readonly [string, Record<string, string | number>];
