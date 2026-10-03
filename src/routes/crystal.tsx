@@ -30,8 +30,51 @@ function DishVisual(props: { image: string; class: string }) {
   return <Show when={isDishImage(props.image)} fallback={<span>{props.image}</span>}>{() => <img class={props.class} src={dishImageSource(props.image)} alt="" draggable="false" />}</Show>;
 }
 
-function DishReceipt(props: { dish: Dish; discarded?: boolean }) {
-  return <article class={{ 'crystal-result': true, 'crystal-result-discarded': props.discarded }}><div class="crystal-result-image"><DishVisual image={props.dish.image} class="dish-photo" /></div><div class="crystal-result-copy"><h2>{props.dish.name}</h2><p>{props.dish.calories} kcal <b>·</b> {props.dish.protein}g {t('protein')}</p><p>{props.dish.carbs}g {t('carbs')} <b>·</b> {props.dish.fat}g fat</p><div class="crystal-tags"><For each={props.dish.tags ?? [props.dish.category]}>{(tag) => <span>{tagLabel(tag)}</span>}</For></div></div></article>;
+function DishReceipt(props: { dish: Dish; discarded?: boolean; initialY?: number; onDiscard?: (distance: number) => void }) {
+  let startY = 0;
+  let lastY = 0;
+  let lastMoveTime = 0;
+  let downwardVelocity = 0;
+  let dragging = false;
+  let returnTimer: number | undefined;
+  const beginDismissDrag = (event: PointerEvent) => {
+    if (props.discarded) return;
+    startY = event.clientY;
+    if (returnTimer) window.clearTimeout(returnTimer);
+    event.currentTarget.style.transition = 'none';
+    lastY = event.clientY;
+    lastMoveTime = performance.now();
+    downwardVelocity = 0;
+    dragging = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveDismissDrag = (event: PointerEvent) => {
+    if (!dragging) return;
+    const now = performance.now();
+    downwardVelocity = (event.clientY - lastY) / Math.max(now - lastMoveTime, 1);
+    lastY = event.clientY;
+    lastMoveTime = now;
+    const distance = Math.max(0, event.clientY - startY);
+    event.currentTarget.style.translate = `0 ${distance}px`;
+  };
+  const endDismissDrag = (event: PointerEvent) => {
+    if (!dragging) return;
+    dragging = false;
+    const distance = event.clientY - startY;
+    if (distance > 72 || (distance > 18 && downwardVelocity > .65)) {
+      event.currentTarget.style.transition = '';
+      props.onDiscard?.(distance);
+      return;
+    }
+    event.currentTarget.style.transition = 'translate .28s cubic-bezier(.2,.8,.2,1)';
+    event.currentTarget.style.translate = '';
+    const receipt = event.currentTarget;
+    returnTimer = window.setTimeout(() => {
+      receipt.style.transition = '';
+      returnTimer = undefined;
+    }, 300);
+  };
+  return <article class={{ 'crystal-result': true, 'crystal-result-discarded': props.discarded }} style={{ translate: props.initialY ? `0 ${props.initialY}px` : undefined }} onPointerDown={beginDismissDrag} onPointerMove={moveDismissDrag} onPointerUp={endDismissDrag} onPointerCancel={endDismissDrag}><div class="crystal-result-image"><DishVisual image={props.dish.image} class="dish-photo" /></div><div class="crystal-result-copy"><h2>{props.dish.name}</h2><p>{props.dish.calories} kcal <b>·</b> {props.dish.protein}g {t('protein')}</p><p>{props.dish.carbs}g {t('carbs')} <b>·</b> {props.dish.fat}g fat</p><div class="crystal-tags"><For each={props.dish.tags ?? [props.dish.category]}>{(tag) => <span>{tagLabel(tag)}</span>}</For></div></div></article>;
 }
 
 export default function CrystalBall() {
@@ -39,6 +82,7 @@ export default function CrystalBall() {
   const [dishes, setDishes] = createSignal<Dish[]>([]);
   const [picked, setPicked] = createSignal<Dish>();
   const [discarded, setDiscarded] = createSignal<Dish>();
+  const [discardedOffset, setDiscardedOffset] = createSignal(0);
   const [choices, setChoices] = createSignal<Dish[]>([]);
   const [offset, setOffset] = createSignal(168);
   const [loading, setLoading] = createSignal(false);
@@ -190,11 +234,11 @@ export default function CrystalBall() {
       setLoading(false); setSpinning(false); setSpinDuration(3.2);
     }, spinDuration() * 1000 + 100);
   };
-  const discardPickedDish = () => {
+  const discardPickedDish = (dragDistance = 0) => {
     const current = picked();
     if (!current) return;
     if (discardTimer) window.clearTimeout(discardTimer);
-    setDiscarded(current); setPicked();
+    setDiscardedOffset(Math.max(0, dragDistance)); setDiscarded(current); setPicked();
     discardTimer = window.setTimeout(() => setDiscarded(), 260);
   };
   const boostSpin = () => {
@@ -278,7 +322,7 @@ export default function CrystalBall() {
      <Show when={loading()} fallback={<Show when={messageVersion()} keyed>{() => <p class="crystal-instruction crystal-message">{message()}</p>}</Show>}><p class="crystal-instruction">{t('crystalLoading')}</p></Show>
       <button class="crystal-spin-button" onClick={spin} disabled={settling() || !activeDishes().length} aria-label={loading() ? t('boostLabel') : t('spinLabel')}>{t('spin')}</button>
       <div class={{ 'crystal-roulette': true, dragging: dragging() }} role="group" aria-label={loading() ? t('dragBoostLabel') : t('dragLabel')} aria-disabled={settling() || !activeDishes().length} onPointerDown={beginDrag} onPointerMove={drag} onPointerUp={endDrag} onPointerCancel={endDrag}><div class="selection-marker" aria-hidden="true" /><div class={{ 'crystal-card-row': true, spinning: spinning(), settling: settling() }} style={{ '--crystal-offset': `${offset()}px`, '--crystal-spin-duration': `${spinDuration()}s` }}><For each={choices()}>{(dish) => <div class="crystal-dish-card"><div class="crystal-dish-image"><DishVisual image={dish.image} class="dish-photo" /></div><h2>{dish.name}</h2></div>}</For></div></div>
-     <Show when={discarded()} keyed>{(dish) => <DishReceipt dish={dish} discarded />}</Show><Show when={picked()} keyed>{(dish) => <DishReceipt dish={dish} />}</Show><Show when={!savedUser()}><p class="crystal-login-note">{t('loginNote')}</p></Show></div>
+      <Show when={discarded()} keyed>{(dish) => <DishReceipt dish={dish} discarded initialY={discardedOffset()} />}</Show><Show when={picked()} keyed>{(dish) => <DishReceipt dish={dish} onDiscard={discardPickedDish} />}</Show><Show when={!savedUser()}><p class="crystal-login-note">{t('loginNote')}</p></Show></div>
     </section>
     <Show when={menuOpen()}>
       <div class="crystal-dialog-overlay" role="presentation" onClick={() => setMenuOpen(false)}>
