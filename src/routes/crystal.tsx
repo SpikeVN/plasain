@@ -1,0 +1,328 @@
+import { createEffect, createMemo, createSignal, For, onCleanup, onSettled, Show, untrack } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import Cropper from 'cropperjs';
+import 'cropperjs/dist/cropper.css';
+import Icon from '../components/Icon';
+import AccountDialog from '../components/AccountDialog';
+import { addDish, currentUser, dishImageSource, fetchDishes, isDishImage, removeDish, savedUser, updateDish, uploadDishImage, type Dish, type User } from '../lib/api';
+import { t } from '../lib/i18n';
+
+// Add, remove, or rewrite the messages shown after each completed spin.
+const CARD_STEP = 168;
+const LOOP_CYCLES = 9;
+const builtinTagKeys: Record<string, string> = {
+  balanced: 'balanced',
+  breakfast: 'breakfast',
+  'high protein': 'highProtein',
+  pescatarian: 'pescatarian',
+  'plant-based': 'plantBased',
+  snack: 'snack',
+  vegan: 'vegan',
+  vegetarian: 'vegetarian',
+  vietnamese: 'vietnamese',
+};
+const tagLabel = (tag: string) => {
+  const key = builtinTagKeys[tag.toLocaleLowerCase()];
+  return key ? t(key) : tag;
+};
+
+function DishVisual(props: { image: string; class: string }) {
+  return <Show when={isDishImage(props.image)} fallback={<span>{props.image}</span>}>{() => <img class={props.class} src={dishImageSource(props.image)} alt="" draggable="false" />}</Show>;
+}
+
+function DishReceipt(props: { dish: Dish; discarded?: boolean }) {
+  return <article class={{ 'crystal-result': true, 'crystal-result-discarded': props.discarded }}><div class="crystal-result-image"><DishVisual image={props.dish.image} class="dish-photo" /></div><div class="crystal-result-copy"><h2>{props.dish.name}</h2><p>{props.dish.calories} kcal <b>·</b> {props.dish.protein}g {t('protein')}</p><p>{props.dish.carbs}g {t('carbs')} <b>·</b> {props.dish.fat}g fat</p><div class="crystal-tags"><For each={props.dish.tags ?? [props.dish.category]}>{(tag) => <span>{tagLabel(tag)}</span>}</For></div></div></article>;
+}
+
+export default function CrystalBall() {
+  const navigate = useNavigate();
+  const [dishes, setDishes] = createSignal<Dish[]>([]);
+  const [picked, setPicked] = createSignal<Dish>();
+  const [discarded, setDiscarded] = createSignal<Dish>();
+  const [choices, setChoices] = createSignal<Dish[]>([]);
+  const [offset, setOffset] = createSignal(168);
+  const [loading, setLoading] = createSignal(false);
+  const [spinning, setSpinning] = createSignal(false);
+  const [dragging, setDragging] = createSignal(false);
+  const [settling, setSettling] = createSignal(false);
+  const [spinDuration, setSpinDuration] = createSignal(3.2);
+  const [message, setMessage] = createSignal(t('crystalHint'));
+  const [messageVersion, setMessageVersion] = createSignal(1);
+  const [user, setUser] = createSignal<User | null>(savedUser());
+  const [addOpen, setAddOpen] = createSignal(false);
+  const [menuOpen, setMenuOpen] = createSignal(false);
+  const [filterOpen, setFilterOpen] = createSignal(false);
+  const [selectedTags, setSelectedTags] = createSignal<string[]>([]);
+  const [editing, setEditing] = createSignal<Dish>();
+  const [deletingDish, setDeletingDish] = createSignal<Dish>();
+  const [deleteBusy, setDeleteBusy] = createSignal(false);
+  const [deleteMessage, setDeleteMessage] = createSignal('');
+  const [accountOpen, setAccountOpen] = createSignal(false);
+  const [addBusy, setAddBusy] = createSignal(false);
+  const [addMessage, setAddMessage] = createSignal('');
+  const [tagDraft, setTagDraft] = createSignal('');
+  const [tags, setTags] = createSignal<string[]>([]);
+  const [dishImage, setDishImage] = createSignal('');
+  const [dishCropSource, setDishCropSource] = createSignal('');
+  const [dishCropOpen, setDishCropOpen] = createSignal(false);
+  const presetTagKeys = ['vegan', 'breakfast', 'lunch', 'dinner', 'snack', 'halal', 'kosher', 'diabetic', 'lactoseIntolerant'] as const;
+  let dragStartX = 0;
+  let dragStartOffset = 0;
+  let lastDragX = 0;
+  let lastDragTime = 0;
+  let dragVelocity = 0;
+  let boostDistance = 0;
+  let activeSpinIndex = 0;
+  let spinTimer: number | undefined;
+  let discardTimer: number | undefined;
+  let suppressSpin = false;
+  let showingSpinReel = false;
+  let dishCropImage: HTMLImageElement | undefined;
+  let dishCropper: Cropper | undefined;
+  const availableTags = createMemo(() => [...new Set(dishes().flatMap((dish) => dish.tags?.length ? dish.tags : [dish.category]))].sort((a, b) => a.localeCompare(b)));
+  const activeDishes = createMemo(() => {
+    const filters = selectedTags();
+    return filters.length ? dishes().filter((dish) => {
+      const dishTags = dish.tags?.length ? dish.tags : [dish.category];
+      return filters.every((tag) => dishTags.some((dishTag) => dishTag.toLocaleLowerCase() === tag.toLocaleLowerCase()));
+    }) : dishes();
+  });
+  const makeManualReel = (anchor: Dish, catalog: Dish[]) => {
+    const orderedDishes = [anchor, ...catalog.filter((dish) => dish.id !== anchor.id)];
+    return Array.from({ length: orderedDishes.length * LOOP_CYCLES }, (_, index) => orderedDishes[index % orderedDishes.length]);
+  };
+  const manualStartOffset = () => activeDishes().length * 4 * CARD_STEP;
+  const keepWithinLoop = (value: number) => {
+    const cycleSize = activeDishes().length * CARD_STEP;
+    if (!cycleSize) return 0;
+    const minimum = cycleSize * 2;
+    const maximum = cycleSize * 6;
+    return minimum + ((((value - minimum) % (maximum - minimum)) + (maximum - minimum)) % (maximum - minimum));
+  };
+  const loadDishes = async () => fetchDishes().then((data) => {
+    setDishes(data);
+    const filters = untrack(selectedTags);
+    const filtered = filters.length ? data.filter((dish) => {
+      const dishTags = dish.tags?.length ? dish.tags : [dish.category];
+      return filters.every((tag) => dishTags.some((dishTag) => dishTag.toLocaleLowerCase() === tag.toLocaleLowerCase()));
+    }) : data;
+    if (filtered.length) {
+      setChoices(makeManualReel(filtered[0], filtered));
+      setOffset(filtered.length * 4 * CARD_STEP);
+    }
+  });
+  onSettled(() => {
+    void loadDishes();
+    if (savedUser()) void currentUser().then(setUser).catch(() => setUser(null));
+  });
+  const openDishForm = (dish?: Dish) => {
+    if (!user()) { setAccountOpen(true); return; }
+    setEditing(dish); setAddMessage(''); setTagDraft(''); setTags(dish?.tags ?? (dish ? [dish.category] : [])); setDishImage(dish && isDishImage(dish.image) ? dish.image : ''); setAddOpen(true);
+  };
+  const openDishMenu = () => { if (!user()) { setAccountOpen(true); return; } setMenuOpen(true); };
+  const ownedDishes = () => dishes().filter((dish) => dish.id.startsWith(`user-${user()?.id}-`));
+  const addTag = () => {
+    const tag = tagDraft().trim();
+    if (!tag || tags().some((item) => item.toLocaleLowerCase() === tag.toLocaleLowerCase())) return;
+    setTags((items) => [...items, tag]); setTagDraft('');
+  };
+  const toggleTag = (tag: string) => setTags((items) => items.includes(tag) ? items.filter((item) => item !== tag) : [...items, tag]);
+  const refreshFilteredReel = () => {
+    setPicked(); setDiscarded();
+    const filtered = activeDishes();
+    if (filtered.length) { setChoices(makeManualReel(filtered[0], filtered)); setOffset(filtered.length * 4 * CARD_STEP); }
+    else { setChoices([]); setOffset(0); }
+  };
+  const toggleFilterTag = (tag: string) => {
+    setSelectedTags((tags) => tags.includes(tag) ? tags.filter((item) => item !== tag) : [...tags, tag]);
+    refreshFilteredReel();
+  };
+  const clearFilters = () => { setSelectedTags([]); refreshFilteredReel(); };
+  const chooseDishImage = (event: Event) => {
+    const file = (event.currentTarget as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setAddMessage(t('imageFileOnly')); return; }
+    const reader = new FileReader();
+    reader.onload = () => { setDishCropSource(String(reader.result)); setDishCropOpen(true); };
+    reader.readAsDataURL(file);
+  };
+  createEffect(dishCropOpen, (isOpen) => {
+    if (!isOpen || !dishCropImage) return;
+    dishCropper?.destroy();
+    dishCropper = new Cropper(dishCropImage, { aspectRatio: 4 / 3, viewMode: 1, autoCropArea: 1, background: false, responsive: true });
+    onCleanup(() => { dishCropper?.destroy(); dishCropper = undefined; });
+  });
+  const saveDishCrop = () => {
+    const canvas = dishCropper?.getCroppedCanvas({ width: 600, height: 450, imageSmoothingQuality: 'high' });
+    if (!canvas) return;
+    setDishImage(canvas.toDataURL('image/jpeg', .82)); setDishCropOpen(false);
+  };
+  const submitDish = async (event: SubmitEvent) => {
+    event.preventDefault(); setAddBusy(true); setAddMessage('');
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    try {
+      const category = String(form.get('category') || '').trim();
+      const dishTags = tags().length ? tags() : category ? [category] : [];
+      const uploadedImage = dishImage().startsWith('data:') ? await uploadDishImage(dishImage()) : dishImage();
+      const draft = { name: String(form.get('name') || ''), category: dishTags[0] || category, tags: dishTags, calories: Number(form.get('calories')), protein: Number(form.get('protein')), carbs: Number(form.get('carbs')), fat: Number(form.get('fat')), image: uploadedImage || String(form.get('emoji') || '🍽️'), description: String(form.get('description') || '') };
+      if (editing()) await updateDish(editing()!.id, draft); else await addDish(draft);
+      await loadDishes(); setAddOpen(false);
+    } catch (error) { setAddMessage(error instanceof Error ? error.message : 'Could not add that dish.'); }
+    finally { setAddBusy(false); }
+  };
+  const confirmDeleteDish = async () => {
+    const dish = deletingDish();
+    if (!dish) return;
+    setDeleteBusy(true); setDeleteMessage('');
+    try { await removeDish(dish.id); await loadDishes(); setDeletingDish(); }
+    catch (error) { setDeleteMessage(error instanceof Error ? error.message : t('deleteDishError')); }
+    finally { setDeleteBusy(false); }
+  };
+  const finishSpin = () => {
+    if (spinTimer) window.clearTimeout(spinTimer);
+    spinTimer = window.setTimeout(() => {
+      const selectedDish = choices()[activeSpinIndex];
+      setMessage(t('crystalHint'));
+      setMessageVersion((version) => version + 1);
+      if (selectedDish) {
+        setPicked(selectedDish);
+      }
+      setLoading(false); setSpinning(false); setSpinDuration(3.2);
+    }, spinDuration() * 1000 + 100);
+  };
+  const discardPickedDish = () => {
+    const current = picked();
+    if (!current) return;
+    if (discardTimer) window.clearTimeout(discardTimer);
+    setDiscarded(current); setPicked();
+    discardTimer = window.setTimeout(() => setDiscarded(), 260);
+  };
+  const boostSpin = () => {
+    if (!loading()) return;
+    const nextIndex = Math.min(activeSpinIndex + 8, choices().length - 3);
+    if (nextIndex === activeSpinIndex) return;
+    const current = choices()[activeSpinIndex];
+    const options = activeDishes().filter((dish) => dish.id !== current?.id);
+    const next = options[Math.floor(Math.random() * options.length)] ?? current;
+    setChoices((reel) => reel.map((dish, index) => index === nextIndex ? next : dish));
+    activeSpinIndex = nextIndex;
+    setSpinDuration(Math.max(1.1, spinDuration() - .4));
+    setOffset(activeSpinIndex * CARD_STEP);
+    finishSpin();
+  };
+  const spin = () => {
+    if (loading()) { boostSpin(); return; }
+    if (settling() || !activeDishes().length) return;
+    const availableDishes = activeDishes();
+    const startIndex = 2;
+    const winnerIndex = 24;
+    const current = picked() ?? choices()[Math.round(offset() / CARD_STEP)] ?? availableDishes[0];
+    const alternatives = availableDishes.filter((dish) => dish.id !== current.id);
+    const next = alternatives[Math.floor(Math.random() * alternatives.length)] ?? current;
+    const reel = Array.from({ length: 128 }, (_, index) =>
+      index === winnerIndex ? next : index === startIndex ? current : availableDishes[Math.floor(Math.random() * availableDishes.length)],
+    );
+
+    activeSpinIndex = winnerIndex;
+    showingSpinReel = true;
+    discardPickedDish();
+    setSpinDuration(3.2); setLoading(true); setSpinning(false); setChoices(reel); setOffset(startIndex * CARD_STEP);
+    window.requestAnimationFrame(() => {
+      setSpinning(true);
+      window.requestAnimationFrame(() => { setOffset(activeSpinIndex * CARD_STEP); finishSpin(); });
+    });
+  };
+  const beginDrag = (event: PointerEvent) => {
+    if (settling()) return;
+    // Preserve the completed spin reel until the user interacts again. Replacing
+    // it at spin completion recreates its adjacent cards and causes a visible flash.
+    if (!loading() && showingSpinReel && picked()) {
+      setChoices(makeManualReel(picked()!, activeDishes()));
+      setOffset(manualStartOffset());
+      showingSpinReel = false;
+    }
+    dragStartX = event.clientX; dragStartOffset = offset(); lastDragX = event.clientX; lastDragTime = performance.now(); dragVelocity = 0; boostDistance = 0; suppressSpin = false;
+    setDragging(true); event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const drag = (event: PointerEvent) => {
+    if (!dragging()) return;
+    if (loading()) {
+      const movement = event.clientX - lastDragX;
+      lastDragX = event.clientX;
+      if (Math.abs(event.clientX - dragStartX) > 4) suppressSpin = true;
+      boostDistance += Math.abs(movement);
+      if (boostDistance >= 32) { boostSpin(); boostDistance = 0; }
+      return;
+    }
+    const now = performance.now();
+    const elapsed = Math.max(now - lastDragTime, 1);
+    dragVelocity = -(event.clientX - lastDragX) / elapsed;
+    lastDragX = event.clientX; lastDragTime = now;
+    const distance = event.clientX - dragStartX;
+    if (Math.abs(distance) > 4) suppressSpin = true;
+    setOffset(keepWithinLoop(dragStartOffset - distance));
+  };
+  const endDrag = (event: PointerEvent) => {
+    if (!dragging()) return;
+    setDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (loading()) return;
+    if (!suppressSpin) return;
+    const projectedOffset = keepWithinLoop(offset() + dragVelocity * 260);
+    const index = Math.round(projectedOffset / CARD_STEP);
+    setSettling(true); setOffset(index * CARD_STEP);
+    discardPickedDish();
+    window.setTimeout(() => { setPicked(choices()[index]); setSettling(false); }, 520);
+  };
+    return <main class="phone-shell"><section class="feature-screen crystal-screen"><header class="crystal-header"><button class="back-button" onClick={() => navigate('/')} aria-label={t('back')}><Icon name="arrowLeft" size={24} /></button><h1>Crystal Ball</h1><button class={{ 'crystal-filter-button': true, active: selectedTags().length > 0 }} type="button" onClick={() => setFilterOpen(true)} aria-label={t('filterByTags')}><Icon name="funnel" size={20} /></button><button class="crystal-menu-button" type="button" onClick={openDishMenu} aria-label={t('yourDishes')}><Icon name="menu" size={23} /></button></header><div class="crystal-content">
+     <Show when={loading()} fallback={<Show when={messageVersion()} keyed>{() => <p class="crystal-instruction crystal-message">{message()}</p>}</Show>}><p class="crystal-instruction">{t('crystalLoading')}</p></Show>
+      <button class="crystal-spin-button" onClick={spin} disabled={settling() || !activeDishes().length} aria-label={loading() ? t('boostLabel') : t('spinLabel')}>{t('spin')}</button>
+      <div class={{ 'crystal-roulette': true, dragging: dragging() }} role="group" aria-label={loading() ? t('dragBoostLabel') : t('dragLabel')} aria-disabled={settling() || !activeDishes().length} onPointerDown={beginDrag} onPointerMove={drag} onPointerUp={endDrag} onPointerCancel={endDrag}><div class="selection-marker" aria-hidden="true" /><div class={{ 'crystal-card-row': true, spinning: spinning(), settling: settling() }} style={{ '--crystal-offset': `${offset()}px`, '--crystal-spin-duration': `${spinDuration()}s` }}><For each={choices()}>{(dish) => <div class="crystal-dish-card"><div class="crystal-dish-image"><DishVisual image={dish.image} class="dish-photo" /></div><h2>{dish.name}</h2></div>}</For></div></div>
+     <Show when={discarded()} keyed>{(dish) => <DishReceipt dish={dish} discarded />}</Show><Show when={picked()} keyed>{(dish) => <DishReceipt dish={dish} />}</Show><Show when={!savedUser()}><p class="crystal-login-note">{t('loginNote')}</p></Show></div>
+    </section>
+    <Show when={menuOpen()}>
+      <div class="crystal-dialog-overlay" role="presentation" onClick={() => setMenuOpen(false)}>
+        <section class="crystal-add-dialog crystal-dishes-dialog" role="dialog" aria-modal="true" aria-label={t('yourDishes')} onClick={(event) => event.stopPropagation()}>
+          <button class="crystal-dialog-close" type="button" onClick={() => setMenuOpen(false)} aria-label={t('close')}><Icon name="x" size={20} /></button>
+          <h2>{t('yourDishes')}</h2>
+          <button class="primary-button crystal-add-dish-action" type="button" onClick={() => openDishForm()}><Icon name="plus" size={17} /> {t('addDish')}</button>
+           <Show when={ownedDishes().length} fallback={<p class="dish-manager-empty">{t('noCustomDishes')}</p>}>
+             <div class="crystal-user-dishes"><For each={ownedDishes()}>{(dish) => <article class="crystal-user-dish"><span><DishVisual image={dish.image} class="dish-photo" /></span><div><h3>{dish.name}</h3><p>{dish.calories} kcal</p></div><div class="crystal-dish-actions"><button type="button" onClick={() => openDishForm(dish)} aria-label={`${t('editDish')}: ${dish.name}`}><Icon name="pencil" size={16} /></button><button type="button" onClick={() => { setDeleteMessage(''); setDeletingDish(dish); }} aria-label={`${t('removeDish')}: ${dish.name}`}><Icon name="trash" size={16} /></button></div></article>}</For></div>
+          </Show>
+        </section>
+         <Show when={addOpen()}>
+          <div class="crystal-dialog-overlay crystal-form-overlay" role="presentation" onClick={(event) => { event.stopPropagation(); setAddOpen(false); }}>
+        <section class="crystal-add-dialog" role="dialog" aria-modal="true" aria-label={t('addDish')} onClick={(event) => event.stopPropagation()}>
+          <button class="crystal-dialog-close" type="button" onClick={(event) => { event.stopPropagation(); setAddOpen(false); }} aria-label={t('close')}><Icon name="x" size={20} /></button>
+          <h2>{editing() ? t('editDish') : t('addDish')}</h2>
+          <form class="compact-form dish-form" onSubmit={(event) => void submitDish(event)}>
+            <input name="name" required maxlength="100" value={editing()?.name ?? ''} placeholder={t('dishName')} />
+            <div class="tag-input"><input name="category" required={!tags().length} maxlength="50" value={tagDraft()} onInput={(event) => setTagDraft(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addTag(); } }} placeholder={t('category')} /><button type="button" onClick={addTag} aria-label={t('addTag')}><Icon name="plus" size={18} /></button></div>
+            <div class="preset-tags"><For each={presetTagKeys}>{(key) => { const tag = t(key); return <button class={{ active: tags().includes(tag) }} type="button" onClick={() => toggleTag(tag)}>{tag}</button>; }}</For></div>
+            <Show when={tags().length}><div class="dish-tags"><For each={tags()}>{(tag) => <button type="button" onClick={() => toggleTag(tag)} aria-label={`${t('removeTag')}: ${tag}`}><span>{tag}</span><Icon name="x" size={12} /></button>}</For></div></Show>
+            <div class="macro-inputs"><input name="calories" required type="number" min="0" value={editing()?.calories ?? ''} placeholder="kcal" /><input name="protein" required type="number" min="0" value={editing()?.protein ?? ''} placeholder="Protein g" /><input name="carbs" required type="number" min="0" value={editing()?.carbs ?? ''} placeholder="Carbs g" /><input name="fat" required type="number" min="0" value={editing()?.fat ?? ''} placeholder="Fat g" /></div>
+            <div class="dish-image-input"><label class="dish-image-upload"><span>{t('dishImage')}</span><input type="file" accept="image/*" onChange={chooseDishImage} /></label><Show when={dishImage()}><div class="dish-image-preview"><DishVisual image={dishImage()} class="dish-photo" /><button type="button" onClick={() => setDishImage('')} aria-label={t('removeDishImage')}><Icon name="x" size={14} /></button></div></Show></div><input name="emoji" maxlength="16" value={editing() && !isDishImage(editing()!.image) ? editing()!.image : ''} placeholder={t('emoji')} /><textarea name="description" maxlength="500" value={editing()?.description ?? ''} placeholder={t('description')} />
+            <Show when={addMessage()}><p class="inline-notice">{addMessage()}</p></Show>
+            <div class="crystal-add-actions"><button class="text-button" type="button" onClick={() => setAddOpen(false)}>{t('cancel')}</button><button class="primary-button" disabled={addBusy()}>{addBusy() ? t('saving') : editing() ? t('save') : t('addDish')}</button></div>
+          </form>
+        </section>
+          </div>
+         </Show>
+         <Show when={dishCropOpen()}><div class="crystal-dialog-overlay crystal-form-overlay" role="presentation" onClick={() => setDishCropOpen(false)}><section class="crystal-add-dialog crop-dialog" role="dialog" aria-modal="true" aria-labelledby="crop-dish-title" onClick={(event) => event.stopPropagation()}><h2 id="crop-dish-title">{t('cropDishImage')}</h2><div class="cropper-frame"><img ref={(element) => { dishCropImage = element; }} src={dishCropSource()} alt={t('cropDishImage')} /></div><div class="crop-actions"><button class="text-button" type="button" onClick={() => setDishCropOpen(false)}>{t('cancel')}</button><button class="primary-button" type="button" onClick={saveDishCrop}>{t('savePhoto')}</button></div></section></div></Show>
+         <Show when={deletingDish()} keyed>{(dish) =>
+           <div class="crystal-dialog-overlay crystal-form-overlay" role="presentation" onClick={(event) => { event.stopPropagation(); if (!deleteBusy()) setDeletingDish(); }}>
+             <section class="crystal-add-dialog crystal-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-dish-title" onClick={(event) => event.stopPropagation()}>
+               <button class="crystal-dialog-close" type="button" disabled={deleteBusy()} onClick={() => setDeletingDish()} aria-label={t('close')}><Icon name="x" size={20} /></button>
+               <h2 id="delete-dish-title">{t('deleteDishQuestion')}</h2>
+               <p>{t('deleteDishCopy')} <b>{dish.name}</b>.</p>
+               <Show when={deleteMessage()}><p class="inline-notice">{deleteMessage()}</p></Show>
+               <div class="crystal-add-actions"><button class="text-button" type="button" disabled={deleteBusy()} onClick={() => setDeletingDish()}>{t('cancel')}</button><button class="delete-confirm-button" type="button" disabled={deleteBusy()} onClick={() => void confirmDeleteDish()}>{deleteBusy() ? t('deleting') : t('removeDish')}</button></div>
+             </section>
+           </div>}
+         </Show>
+       </div>
+     </Show>
+     <Show when={filterOpen()}><div class="crystal-dialog-overlay" role="presentation" onClick={() => setFilterOpen(false)}><section class="crystal-add-dialog crystal-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="filter-tags-title" onClick={(event) => event.stopPropagation()}><button class="crystal-dialog-close" type="button" onClick={() => setFilterOpen(false)} aria-label={t('close')}><Icon name="x" size={20} /></button><h2 id="filter-tags-title">{t('filterByTags')}</h2><p>{t('filterTagsCopy')}</p><div class="preset-tags crystal-filter-tags"><For each={availableTags()}>{(tag) => <button class={{ active: selectedTags().includes(tag) }} type="button" onClick={() => toggleFilterTag(tag)}>{tagLabel(tag)}</button>}</For></div><Show when={!activeDishes().length}><p class="inline-notice">{t('noMatchingDishes')}</p></Show><div class="crystal-add-actions"><button class="text-button" type="button" onClick={clearFilters}>{t('clearFilters')}</button><button class="primary-button" type="button" onClick={() => setFilterOpen(false)}>{t('close')}</button></div></section></div></Show>
+    <Show when={accountOpen()}><AccountDialog user={user()} onUserChange={setUser} onClose={() => setAccountOpen(false)} /></Show>
+  </main>;
+}

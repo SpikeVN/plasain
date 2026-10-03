@@ -1,0 +1,10 @@
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    restart: unless-stopped

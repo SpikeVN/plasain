@@ -1,0 +1,108 @@
+language: English
+code: en
+messages:
+  greeting: Good morning
+  accountSettings: Account settings
+  signIn: Sign in
+  createAccount: Create account
+  username: Username
+  password: Password
+  welcomeBack: Welcome back
+  newHere: New here? Create an account
+  haveAccount: Already have an account? Sign in
+  accountIntro: Sign in to plan meals and add dishes from your kitchen.
+  close: Close
+  choosePhoto: Choose a profile photo
+  displayName: Display name
+  height: Height (cm)
+  language: Language
+  biologicalSex: Biological sex
+  sexHelp: Used only to calculate your Mifflin–St Jeor TDEE.
+  female: Female
+  male: Male
+  autosave: Changes save automatically
+  saving: Saving…
+  saved: Saved
+  signOut: Sign out
+  deleteAccount: Delete account
+  deleteQuestion: Delete your account?
+  deleteCopy: This permanently removes your dishes and saved plans.
+  cancel: Cancel
+  deleting: Deleting…
+  cropPhoto: Crop profile photo
+  savePhoto: Save photo
+  addDish: Add a dish
+  addTag: Add tag
+  removeTag: Remove tag
+  vegan: Vegan
+  breakfast: Breakfast
+  lunch: Lunch
+  dinner: Dinner
+  snack: Snack
+  halal: Halal
+  kosher: Kosher
+  diabetic: Diabetic
+  lactoseIntolerant: Lactose intolerant
+  crystalDescription: Find food that fits your nutrition needs and current plan.
+  plannerDescription: Organize and understand your nutrition plan.
+  regressorDescription: Predict your nutrition and fitness progress.
+  comingSoon: Coming soon — we are growing this feature.
+  homeHint: Tap a card to explore its feature.
+  planner: Your Planner
+  back: Go back
+  checkingAccount: Checking your account
+  checkingCopy: Making sure your account is available.
+  plannerMembers: Planner is for members
+  plannerMembersCopy: Sign in to build plans and save custom dishes from nearby places.
+  signInContinue: Sign in to continue
+  plannerIntro: Build a day that feels good, one meal at a time.
+  focus: What are you focusing on?
+  balanced: Balanced
+  highProtein: High protein
+  pescatarian: Pescatarian
+  vegetarian: Vegetarian
+  vietnamese: Vietnamese
+  plantBased: Plant-based
+  focusCopy: We’ll shape a simple meal plan around your focus.
+  mealIdeas: meal ideas
+  dailyKcal: daily kcal
+  gentleGoal: is the goal
+  makePlan: Make my meal plan
+  preparingPlan: Putting it together…
+  yourDay: Your day, your way
+  editAnytime: Edit anytime
+  plannerEmpty: Good plans leave room to listen to yourself.
+  crystalLoading: Finding a dish
+  spin: Spin
+  spinLabel: Spin the crystal
+  boostLabel: Add spin momentum
+  dragLabel: Drag to select a meal
+  dragBoostLabel: Drag left to add momentum
+  crystalHint: Drag the carousel or press Spin to begin.
+  loginNote: Logging in lets you add custom and local dishes.
+  protein: protein
+  carbs: carbs
+  yourDishes: Your dishes
+  signInRequired: Sign-in required
+  dishesCopy: Sign in to add meals that only you can see and use in plans.
+  noCustomDishes: You have not added any dishes yet.
+  dishName: Dish name
+  category: Category
+  emoji: Emoji (optional)
+  dishImage: Dish image
+  cropDishImage: Crop dish image
+  removeDishImage: Remove dish image
+  imageFileOnly: Please choose an image file.
+  description: A short description (optional)
+  pleaseWait: Please wait…
+  dishSaved: Dish added to your collection.
+  editDish: Edit dish
+  removeDish: Remove dish
+  deleteDishQuestion: Remove this dish?
+  deleteDishCopy: This permanently removes
+  deleteDishError: Could not remove that dish.
+  save: Save
+  filterByTags: Filter by tags
+  filterTagsCopy: Select one or more tags. A dish must have every selected tag.
+  clearFilters: Clear filters
+  noMatchingDishes: No dishes match these tags.

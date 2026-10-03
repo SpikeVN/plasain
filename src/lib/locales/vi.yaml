@@ -1,0 +1,108 @@
+language: Tiếng Việt
+code: vi
+messages:
+  greeting: Chào buổi sáng
+  accountSettings: Cài đặt tài khoản
+  signIn: Đăng nhập
+  createAccount: Tạo tài khoản
+  username: Tên người dùng
+  password: Mật khẩu
+  welcomeBack: Chào mừng bạn quay lại
+  newHere: Chưa có tài khoản? Tạo tài khoản
+  haveAccount: Đã có tài khoản? Đăng nhập
+  accountIntro: Đăng nhập để lập kế hoạch và thêm món ăn của bạn.
+  close: Đóng
+  choosePhoto: Chọn ảnh đại diện
+  displayName: Tên hiển thị
+  height: Chiều cao (cm)
+  language: Ngôn ngữ
+  biologicalSex: Giới tính sinh học
+  sexHelp: Chỉ dùng để tính TDEE theo Mifflin–St Jeor.
+  female: Nữ
+  male: Nam
+  autosave: Thay đổi được tự động lưu
+  saving: Đang lưu…
+  saved: Đã lưu
+  signOut: Đăng xuất
+  deleteAccount: Xóa tài khoản
+  deleteQuestion: Xóa tài khoản?
+  deleteCopy: Thao tác này sẽ xóa vĩnh viễn món ăn và kế hoạch đã lưu.
+  cancel: Hủy
+  deleting: Đang xóa…
+  cropPhoto: Cắt ảnh đại diện
+  savePhoto: Lưu ảnh
+  addDish: Thêm món ăn
+  addTag: Thêm thẻ
+  removeTag: Xóa thẻ
+  vegan: Thuần chay
+  breakfast: Bữa sáng
+  lunch: Bữa trưa
+  dinner: Bữa tối
+  snack: Ăn nhẹ
+  halal: Halal
+  kosher: Kosher
+  diabetic: Tiểu đường
+  lactoseIntolerant: Không dung nạp lactose
+  crystalDescription: Tìm món ăn phù hợp với nhu cầu dinh dưỡng và kế hoạch hiện tại.
+  plannerDescription: Sắp xếp và theo dõi kế hoạch dinh dưỡng của bạn.
+  regressorDescription: Dự đoán tiến độ dinh dưỡng và thể hình của bạn.
+  comingSoon: Sắp ra mắt — chúng tôi đang phát triển tính năng này.
+  homeHint: Chạm vào thẻ để khám phá tính năng.
+  planner: Kế hoạch của bạn
+  back: Quay lại
+  checkingAccount: Đang kiểm tra tài khoản
+  checkingCopy: Đang đảm bảo tài khoản của bạn khả dụng.
+  plannerMembers: Planner dành cho thành viên
+  plannerMembersCopy: Đăng nhập để lập kế hoạch và lưu món ăn tùy chỉnh từ địa phương.
+  signInContinue: Đăng nhập để tiếp tục
+  plannerIntro: Xây dựng một ngày thật dễ chịu, từng bữa một.
+  focus: Bạn đang tập trung vào điều gì?
+  balanced: Cân bằng
+  highProtein: Giàu đạm
+  pescatarian: Ăn chay có cá
+  vegetarian: Ăn chay
+  vietnamese: Việt Nam
+  plantBased: Thuần thực vật
+  focusCopy: Chúng tôi sẽ tạo kế hoạch đơn giản theo mục tiêu của bạn.
+  mealIdeas: gợi ý bữa ăn
+  dailyKcal: kcal mỗi ngày
+  gentleGoal: là mục tiêu
+  makePlan: Tạo kế hoạch bữa ăn
+  preparingPlan: Đang chuẩn bị…
+  yourDay: Ngày của bạn, theo cách của bạn
+  editAnytime: Chỉnh sửa bất kỳ lúc nào
+  plannerEmpty: Kế hoạch tốt luôn có chỗ cho điều bạn cần.
+  crystalLoading: Đang tìm món
+  spin: Quay
+  spinLabel: Quay quả cầu
+  boostLabel: Tăng lực quay
+  dragLabel: Kéo để chọn món
+  dragBoostLabel: Kéo sang trái để tăng lực quay
+  crystalHint: Kéo vòng quay hoặc nhấn Quay để bắt đầu.
+  loginNote: Đăng nhập để thêm món ăn tự tạo và món địa phương.
+  protein: đạm
+  carbs: carb
+  yourDishes: Món ăn của bạn
+  signInRequired: Cần đăng nhập
+  dishesCopy: Đăng nhập để thêm món chỉ bạn nhìn thấy và dùng trong kế hoạch.
+  noCustomDishes: Bạn chưa thêm món ăn nào.
+  dishName: Tên món
+  category: Danh mục
+  emoji: Biểu tượng (không bắt buộc)
+  dishImage: Ảnh món ăn
+  cropDishImage: Cắt ảnh món ăn
+  removeDishImage: Xóa ảnh món ăn
+  imageFileOnly: Vui lòng chọn tệp ảnh.
+  description: Mô tả ngắn (không bắt buộc)
+  pleaseWait: Vui lòng chờ…
+  dishSaved: Đã thêm món vào bộ sưu tập.
+  editDish: Chỉnh sửa món ăn
+  removeDish: Xóa món ăn
+  deleteDishQuestion: Xóa món ăn này?
+  deleteDishCopy: Thao tác này sẽ xóa vĩnh viễn
+  deleteDishError: Không thể xóa món ăn này.
+  save: Lưu
+  filterByTags: Lọc theo thẻ
+  filterTagsCopy: Chọn một hoặc nhiều thẻ. Món ăn phải có tất cả thẻ đã chọn.
+  clearFilters: Xóa bộ lọc
+  noMatchingDishes: Không có món ăn phù hợp với các thẻ này.
