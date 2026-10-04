@@ -1,5 +1,7 @@
 services:
   api:
+    container_name: plasain-api
+    image: plasain-api:latest
     build: ./backend
     ports:
       - "8000:8000"
@@ -7,4 +9,11 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      DISH_UPLOADS_PATH: /data/uploads/dishes
+      SQLITE_DB_PATH: /data/plasain.db
+    volumes:
+      - backend-data:/data
     restart: unless-stopped
+
+volumes:
+  backend-data:

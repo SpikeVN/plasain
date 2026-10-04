@@ -21,7 +21,7 @@ const stored =
     ? null
     : window.localStorage.getItem("plasain.locale");
 const [locale, setLocaleSignal] = createSignal<Locale>(
-  stored === "vi" ? "vi" : "en",
+  stored === "en" ? "en" : "vi",
 );
 export { locale };
 

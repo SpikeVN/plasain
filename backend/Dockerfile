@@ -1,11 +1,11 @@
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 DISH_UPLOADS_PATH=/data/uploads/dishes
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=10001:10001 main.py dishes.json ./
 COPY --chown=10001:10001 app ./app
-RUN mkdir /data && chown 10001:10001 /data
+RUN mkdir -p /data/uploads/dishes && chown -R 10001:10001 /data
 EXPOSE 8000
 USER 10001
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

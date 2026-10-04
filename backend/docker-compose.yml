@@ -1,5 +1,6 @@
 services:
   api:
+    container_name: plasain-api
     image: ghcr.io/spikevn/plasain-api:latest
     pull_policy: always
     ports:

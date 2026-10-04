@@ -5,14 +5,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.config import BACKEND_ROOT
+from app.config import DISH_UPLOADS_PATH
 from app.database import initialize_database
 from app.routers import auth, dishes, plans, regressor
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    (BACKEND_ROOT / "uploads" / "dishes").mkdir(parents=True, exist_ok=True)
+    DISH_UPLOADS_PATH.mkdir(parents=True, exist_ok=True)
     initialize_database()
     yield
 
@@ -31,7 +31,11 @@ app.include_router(auth.router)
 app.include_router(dishes.router)
 app.include_router(plans.router)
 app.include_router(regressor.router)
-app.mount("/uploads", StaticFiles(directory=BACKEND_ROOT / "uploads", check_dir=False), name="uploads")
+app.mount(
+    "/uploads",
+    StaticFiles(directory=DISH_UPLOADS_PATH.parent, check_dir=False),
+    name="uploads",
+)
 
 
 @app.get("/health")
