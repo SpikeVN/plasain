@@ -67,7 +67,7 @@ messages:
   regressorCheckinSource: Check-in source
   regressorManualInput: Manual input
   regressorPlannerHistory: Planner history
-  regressorManualHelp: Enter at least seven days. Oldest first; add intake alongside each weigh-in.
+  regressorManualHelp: Enter your weigh-ins for the imported Planner days, oldest first.
   regressorCheckin: Check-in
   regressorDate: date
   regressorWeight: Weight
@@ -75,7 +75,7 @@ messages:
   regressorProtein: Protein
   regressorCarbs: Carbs
   regressorSodium: Sodium
-  regressorPlannerHelp: Use saved Planner days for intake. Add weigh-ins and sodium in Manual input.
+  regressorPlannerHelp: Use saved Planner days for intake, then add your weigh-ins in Manual input.
   regressorFrom: From
   regressorTo: To
   regressorImportRange: Import this range
@@ -101,7 +101,7 @@ messages:
   regressorPlannerDateOrder: Choose an end date after the start date.
   regressorPlannerMinimum: This range needs at least seven saved Planner days.
   regressorPlannerMaximum: Choose a range with 60 days or fewer.
-  regressorPlannerImported: Calories and macros imported. Add weigh-ins and sodium in Manual input.
+  regressorPlannerImported: Nutrition data imported. Add weigh-ins in Manual input.
   regressorPlannerLoadError: Could not load Planner history.
   comingSoon: Coming soon — we are growing this feature.
   homeHint: Tap a card to explore its feature.

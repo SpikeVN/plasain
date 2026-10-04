@@ -7,6 +7,7 @@
     "protein": 32,
     "carbs": 56,
     "fat": 9,
+    "sodium_mg": 1250,
     "image": "🍜",
     "description": "Light, aromatic chicken noodle soup",
     "tags": ["High protein"]
@@ -19,6 +20,7 @@
     "protein": 38,
     "carbs": 48,
     "fat": 22,
+    "sodium_mg": 680,
     "image": "🥗",
     "description": "Salmon, brown rice, avocado and greens",
     "tags": ["Pescatarian", "High protein"]
@@ -31,6 +33,7 @@
     "protein": 24,
     "carbs": 45,
     "fat": 14,
+    "sodium_mg": 790,
     "image": "🥦",
     "description": "Crispy tofu with colorful seasonal vegetables",
     "tags": ["Vegan", "Plant-based"]
@@ -43,6 +46,7 @@
     "protein": 18,
     "carbs": 32,
     "fat": 18,
+    "sodium_mg": 610,
     "image": "🍳",
     "description": "Whole-grain toast with eggs and ripe avocado",
     "tags": ["Vegetarian"]
@@ -55,6 +59,7 @@
     "protein": 20,
     "carbs": 38,
     "fat": 6,
+    "sodium_mg": 180,
     "image": "🍓",
     "description": "Greek yogurt with berries, oats and honey",
     "tags": ["Vegetarian"]
@@ -67,6 +72,7 @@
     "protein": 42,
     "carbs": 65,
     "fat": 19,
+    "sodium_mg": 1050,
     "image": "🍚",
     "description": "Lean ginger beef, jasmine rice and greens",
     "tags": ["High protein"]
@@ -79,6 +85,7 @@
     "protein": 19,
     "carbs": 52,
     "fat": 7,
+    "sodium_mg": 720,
     "image": "🥣",
     "description": "Slow-simmered lentils with tomato and herbs",
     "tags": ["Vegan", "Plant-based"]

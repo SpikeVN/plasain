@@ -43,6 +43,7 @@ export default function DishManager(props: {
         protein: Number(form.get("protein")),
         carbs: Number(form.get("carbs")),
         fat: Number(form.get("fat")),
+        sodium_mg: Number(form.get("sodium_mg")),
         image: String(form.get("image") || "🍽️"),
         description: String(form.get("description") || ""),
       });
@@ -164,6 +165,13 @@ export default function DishManager(props: {
                   type="number"
                   min="0"
                   placeholder="Fat g"
+                />
+                <input
+                  name="sodium_mg"
+                  required
+                  type="number"
+                  min="0"
+                  placeholder="Sodium mg"
                 />
               </div>
               <input

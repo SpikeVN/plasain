@@ -20,6 +20,7 @@ vi.mock("../lib/api", async (importOriginal) => {
         protein: 10,
         carbs: 10,
         fat: 5,
+        sodium_mg: 100,
         image: "🍽️",
         description: "",
       })),

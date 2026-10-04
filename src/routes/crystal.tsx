@@ -384,6 +384,7 @@ export default function CrystalBall() {
         protein: Number(form.get("protein")),
         carbs: Number(form.get("carbs")),
         fat: Number(form.get("fat")),
+        sodium_mg: Number(form.get("sodium_mg")),
         image: uploadedImage || String(form.get("emoji") || "🍽️"),
         description: String(form.get("description") || ""),
       };
@@ -849,6 +850,14 @@ export default function CrystalBall() {
                       min="0"
                       value={editing()?.fat ?? ""}
                       placeholder="Fat g"
+                    />
+                    <input
+                      name="sodium_mg"
+                      required
+                      type="number"
+                      min="0"
+                      value={editing()?.sodium_mg ?? ""}
+                      placeholder="Sodium mg"
                     />
                   </div>
                   <div class="dish-image-input">

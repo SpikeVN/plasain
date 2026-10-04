@@ -38,6 +38,7 @@ class DishInput(BaseModel):
     protein: int = Field(ge=0, le=1000)
     carbs: int = Field(ge=0, le=1000)
     fat: int = Field(ge=0, le=1000)
+    sodium_mg: int = Field(ge=0, le=20_000)
     # Either a short emoji or a backend-served image URL.
     image: str = Field(default="🍽️", min_length=1, max_length=500)
     description: str = Field(default="", max_length=500)

@@ -6,6 +6,7 @@ export type Dish = {
   protein: number;
   carbs: number;
   fat: number;
+  sodium_mg: number;
   image: string;
   description: string;
   tags?: string[];

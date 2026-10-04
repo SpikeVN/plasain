@@ -15,6 +15,7 @@ import {
   savedUser,
   type CheckIn,
   type RegressorResult,
+  type SavedPlan,
 } from "../lib/api";
 import { t } from "../lib/i18n";
 import "../styles/regressor.css";
@@ -223,11 +224,11 @@ export default function Regressor() {
     }
     const version = ++projectionVersion;
     const input = {
-      height_cm: height(),
-      age_years: age(),
-      sex: sex(),
-      pal: pal(),
-      target_calories: target(),
+      height_cm: height()!,
+      age_years: age()!,
+      sex: sex()!,
+      pal: pal()!,
+      target_calories: target()!,
       check_ins: completeCheckIns(),
     };
     setError("");
@@ -268,7 +269,7 @@ export default function Regressor() {
     setPlannerMessage("");
     setBusy(true);
     try {
-      const latestByDate = new Map();
+      const latestByDate = new Map<string, SavedPlan>();
       for (const plan of await fetchPlans(undefined, {
         startDate: startDate(),
         endDate: endDate(),
@@ -291,6 +292,10 @@ export default function Regressor() {
         calories: plan.meals.reduce((total, meal) => total + meal.calories, 0),
         protein_g: plan.meals.reduce((total, meal) => total + meal.protein, 0),
         carbs_g: plan.meals.reduce((total, meal) => total + meal.carbs, 0),
+        sodium_mg: plan.meals.reduce(
+          (total, meal) => total + meal.sodium_mg,
+          0,
+        ),
       }));
       setLogs(imported);
       setPlannerMessage(t("regressorPlannerImported"));
@@ -474,70 +479,6 @@ export default function Regressor() {
                               }
                             />
                             <span>kg</span>
-                          </label>
-                          <label>
-                            {t("regressorCalories")}{" "}
-                            <input
-                              aria-label={`${t("regressorCheckin")} ${index() + 1} ${t("regressorCalories")}`}
-                              type="number"
-                              value={log.calories}
-                              onInput={(event) =>
-                                setLog(
-                                  index(),
-                                  "calories",
-                                  event.currentTarget.value,
-                                )
-                              }
-                            />
-                            <span>kcal</span>
-                          </label>
-                          <label>
-                            {t("regressorProtein")}{" "}
-                            <input
-                              aria-label={`${t("regressorCheckin")} ${index() + 1} ${t("regressorProtein")}`}
-                              type="number"
-                              value={log.protein_g}
-                              onInput={(event) =>
-                                setLog(
-                                  index(),
-                                  "protein_g",
-                                  event.currentTarget.value,
-                                )
-                              }
-                            />
-                            <span>g</span>
-                          </label>
-                          <label>
-                            {t("regressorCarbs")}{" "}
-                            <input
-                              aria-label={`${t("regressorCheckin")} ${index() + 1} ${t("regressorCarbs")}`}
-                              type="number"
-                              value={log.carbs_g}
-                              onInput={(event) =>
-                                setLog(
-                                  index(),
-                                  "carbs_g",
-                                  event.currentTarget.value,
-                                )
-                              }
-                            />
-                            <span>g</span>
-                          </label>
-                          <label>
-                            {t("regressorSodium")}{" "}
-                            <input
-                              aria-label={`${t("regressorCheckin")} ${index() + 1} ${t("regressorSodium")}`}
-                              type="number"
-                              value={log.sodium_mg}
-                              onInput={(event) =>
-                                setLog(
-                                  index(),
-                                  "sodium_mg",
-                                  event.currentTarget.value,
-                                )
-                              }
-                            />
-                            <span>mg</span>
                           </label>
                         </div>
                       </article>

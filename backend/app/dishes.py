@@ -16,7 +16,7 @@ def base_dishes() -> list[dict[str, Any]]:
 def dishes_for_user(user_id: str) -> list[dict[str, Any]]:
     with get_connection() as connection:
         rows = connection.execute(
-            "SELECT id, name, category, calories, protein, carbs, fat, image, description, tags_json FROM user_dishes WHERE user_id = ? ORDER BY created_at DESC",
+            "SELECT id, name, category, calories, protein, carbs, fat, sodium_mg, image, description, tags_json FROM user_dishes WHERE user_id = ? ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
     dishes = []
@@ -32,8 +32,8 @@ def add_dish(user_id: str, dish: DishInput) -> dict[str, Any]:
     with get_connection() as connection:
         connection.execute(
             """INSERT INTO user_dishes
-                (id, user_id, name, category, calories, protein, carbs, fat, image, description, tags_json, created_at)
-                VALUES (:id, :user_id, :name, :category, :calories, :protein, :carbs, :fat, :image, :description, :tags_json, :created_at)""",
+                (id, user_id, name, category, calories, protein, carbs, fat, sodium_mg, image, description, tags_json, created_at)
+                VALUES (:id, :user_id, :name, :category, :calories, :protein, :carbs, :fat, :sodium_mg, :image, :description, :tags_json, :created_at)""",
              {**saved, "tags_json": json.dumps(saved["tags"]), "user_id": user_id, "created_at": datetime.now(UTC).isoformat()},
         )
     return saved
@@ -44,7 +44,7 @@ def update_dish(user_id: str, dish_id: str, dish: DishInput) -> dict[str, Any] |
     with get_connection() as connection:
         result = connection.execute(
             """UPDATE user_dishes SET name = :name, category = :category, calories = :calories,
-                protein = :protein, carbs = :carbs, fat = :fat, image = :image,
+                protein = :protein, carbs = :carbs, fat = :fat, sodium_mg = :sodium_mg, image = :image,
                 description = :description, tags_json = :tags_json WHERE id = :id AND user_id = :user_id""",
             {**saved, "tags_json": json.dumps(saved["tags"]), "user_id": user_id},
         )

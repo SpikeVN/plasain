@@ -51,6 +51,7 @@ def initialize_database() -> None:
                 protein INTEGER NOT NULL,
                 carbs INTEGER NOT NULL,
                 fat INTEGER NOT NULL,
+                sodium_mg INTEGER NOT NULL DEFAULT 0,
                 image TEXT NOT NULL,
                 description TEXT NOT NULL,
                 tags_json TEXT NOT NULL DEFAULT '[]',
@@ -60,6 +61,8 @@ def initialize_database() -> None:
         columns = {row["name"] for row in connection.execute("PRAGMA table_info(user_dishes)")}
         if "tags_json" not in columns:
             connection.execute("ALTER TABLE user_dishes ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'")
+        if "sodium_mg" not in columns:
+            connection.execute("ALTER TABLE user_dishes ADD COLUMN sodium_mg INTEGER NOT NULL DEFAULT 0")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS plans (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

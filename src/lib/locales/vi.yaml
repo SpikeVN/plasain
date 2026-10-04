@@ -67,7 +67,7 @@ messages:
   regressorCheckinSource: Nguồn nhật ký
   regressorManualInput: Nhập thủ công
   regressorPlannerHistory: Lịch sử kế hoạch
-  regressorManualHelp: Nhập ít nhất bảy ngày, từ cũ nhất đến mới nhất; thêm lượng ăn cùng mỗi lần cân.
+  regressorManualHelp: Nhập cân nặng cho các ngày Kế hoạch đã nhập, từ cũ nhất đến mới nhất.
   regressorCheckin: Nhật ký
   regressorDate: ngày
   regressorWeight: Cân nặng
@@ -75,7 +75,7 @@ messages:
   regressorProtein: Đạm
   regressorCarbs: Carb
   regressorSodium: Natri
-  regressorPlannerHelp: Dùng các ngày Kế hoạch đã lưu để lấy lượng ăn. Thêm cân nặng và natri trong mục Nhập thủ công.
+  regressorPlannerHelp: Dùng các ngày Kế hoạch đã lưu để lấy lượng ăn, sau đó thêm cân nặng trong mục Nhập thủ công.
   regressorFrom: Từ
   regressorTo: Đến
   regressorImportRange: Nhập khoảng này
@@ -101,7 +101,7 @@ messages:
   regressorPlannerDateOrder: Chọn ngày kết thúc sau ngày bắt đầu.
   regressorPlannerMinimum: Khoảng này cần ít nhất bảy ngày Kế hoạch đã lưu.
   regressorPlannerMaximum: Chọn khoảng tối đa 60 ngày.
-  regressorPlannerImported: Đã nhập calo và chất đa lượng. Thêm cân nặng và natri trong mục Nhập thủ công.
+  regressorPlannerImported: Đã nhập dữ liệu dinh dưỡng. Thêm cân nặng trong mục Nhập thủ công.
   regressorPlannerLoadError: Không thể tải lịch sử Kế hoạch.
   comingSoon: Sắp ra mắt — chúng tôi đang phát triển tính năng này.
   homeHint: Chạm vào thẻ để khám phá tính năng.
