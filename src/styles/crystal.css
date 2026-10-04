@@ -182,13 +182,6 @@
     transform: translateX(calc(-77.5px - var(--crystal-offset, 168px)));
     transition: none;
   }
-  .crystal-card-row.spinning {
-    transition: transform var(--crystal-spin-duration, 3.2s)
-      cubic-bezier(0.18, 0.72, 0.3, 1);
-  }
-  .crystal-card-row.settling {
-    transition: transform 0.52s cubic-bezier(0.18, 0.8, 0.28, 1);
-  }
   .crystal-dish-card {
     display: flex;
     flex: 0 0 155px;

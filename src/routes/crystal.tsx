@@ -28,9 +28,16 @@ import {
   type User,
 } from "../lib/api";
 import { t } from "../lib/i18n";
+import {
+  CARD_STEP,
+  forwardTarget,
+  modulo,
+  reelOffset,
+  sampleMotion,
+  type Motion,
+} from "../lib/carousel-motion";
 
 // Add, remove, or rewrite the messages shown after each completed spin.
-const CARD_STEP = 168;
 const LOOP_CYCLES = 9;
 const builtinTagKeys: Record<string, string> = {
   balanced: "balanced",
@@ -156,14 +163,11 @@ export default function CrystalBall() {
   const [picked, setPicked] = createSignal<Dish>();
   const [discarded, setDiscarded] = createSignal<Dish>();
   const [discardedOffset, setDiscardedOffset] = createSignal(0);
-  const [choices, setChoices] = createSignal<Dish[]>([]);
-  const [offset, setOffset] = createSignal(168);
+  const [offset, setOffset] = createSignal(0, { name: "carouselPosition" });
   const [loading, setLoading] = createSignal(false);
-  const [spinning, setSpinning] = createSignal(false);
   const [dragging, setDragging] = createSignal(false);
   const [settling, setSettling] = createSignal(false);
-  const [spinDuration, setSpinDuration] = createSignal(3.2);
-  const [message, setMessage] = createSignal(t("crystalHint"));
+  const [message, setMessage] = createSignal(untrack(() => t("crystalHint")));
   const [messageVersion, setMessageVersion] = createSignal(1);
   const [user, setUser] = createSignal<User | null>(savedUser());
   const [addOpen, setAddOpen] = createSignal(false);
@@ -199,11 +203,20 @@ export default function CrystalBall() {
   let lastDragTime = 0;
   let dragVelocity = 0;
   let boostDistance = 0;
-  let activeSpinIndex = 0;
-  let spinTimer: number | undefined;
+  let motion: Motion | undefined;
+  // Imperative motion reads must see the latest sample even before Solid's
+  // batched DOM update commits. The signal is the reactive rendering channel.
+  let position = 0;
+  const updatePosition = (value: number) => {
+    position = value;
+    setOffset(value);
+  };
+  let motionFrame: number | undefined;
+  let motionComplete: (() => void) | undefined;
+  let activePointer: number | undefined;
+  let dragBoosting = false;
   let discardTimer: number | undefined;
   let suppressSpin = false;
-  let showingSpinReel = false;
   let dishCropImage: HTMLImageElement | undefined;
   let dishCropper: Cropper | undefined;
   const availableTags = createMemo(() =>
@@ -229,47 +242,23 @@ export default function CrystalBall() {
         })
       : dishes();
   });
-  const makeManualReel = (anchor: Dish, catalog: Dish[]) => {
-    const orderedDishes = [
-      anchor,
-      ...catalog.filter((dish) => dish.id !== anchor.id),
-    ];
+  const makeReel = (catalog: Dish[]) => {
     return Array.from(
-      { length: orderedDishes.length * LOOP_CYCLES },
-      (_, index) => orderedDishes[index % orderedDishes.length],
+      { length: catalog.length * LOOP_CYCLES },
+      (_, index) => catalog[index % catalog.length],
     );
   };
-  const manualStartOffset = () => activeDishes().length * 4 * CARD_STEP;
-  const keepWithinLoop = (value: number) => {
-    const cycleSize = activeDishes().length * CARD_STEP;
-    if (!cycleSize) return 0;
-    const minimum = cycleSize * 2;
-    const maximum = cycleSize * 6;
-    return (
-      minimum +
-      ((((value - minimum) % (maximum - minimum)) + (maximum - minimum)) %
-        (maximum - minimum))
-    );
-  };
+  const choices = createMemo(() => makeReel(activeDishes()), {
+    name: "carouselReel",
+  });
+  const renderedOffset = createMemo(
+    () => reelOffset(offset(), activeDishes().length),
+    { name: "carouselRenderedPosition" },
+  );
   const loadDishes = async () =>
     fetchDishes().then((data) => {
       setDishes(data);
-      const filters = untrack(selectedTags);
-      const filtered = filters.length
-        ? data.filter((dish) => {
-            const dishTags = dish.tags?.length ? dish.tags : [dish.category];
-            return filters.every((tag) =>
-              dishTags.some(
-                (dishTag) =>
-                  dishTag.toLocaleLowerCase() === tag.toLocaleLowerCase(),
-              ),
-            );
-          })
-        : data;
-      if (filtered.length) {
-        setChoices(makeManualReel(filtered[0], filtered));
-        setOffset(filtered.length * 4 * CARD_STEP);
-      }
+      refreshFilteredReel();
     });
   onSettled(() => {
     void loadDishes();
@@ -318,16 +307,14 @@ export default function CrystalBall() {
         : [...items, tag],
     );
   const refreshFilteredReel = () => {
+    cancelMotion();
+    activePointer = undefined;
+    setDragging(false);
+    setLoading(false);
+    setSettling(false);
     setPicked();
     setDiscarded();
-    const filtered = activeDishes();
-    if (filtered.length) {
-      setChoices(makeManualReel(filtered[0], filtered));
-      setOffset(filtered.length * 4 * CARD_STEP);
-    } else {
-      setChoices([]);
-      setOffset(0);
-    }
+    updatePosition(0);
   };
   const toggleFilterTag = (tag: string) => {
     setSelectedTags((tags) =>
@@ -429,23 +416,51 @@ export default function CrystalBall() {
       setDeleteBusy(false);
     }
   };
-  const finishSpin = () => {
-    if (spinTimer) window.clearTimeout(spinTimer);
-    spinTimer = window.setTimeout(
-      () => {
-        const selectedDish = choices()[activeSpinIndex];
-        setMessage(t("crystalHint"));
-        setMessageVersion((version) => version + 1);
-        if (selectedDish) {
-          setPicked(selectedDish);
-        }
-        setLoading(false);
-        setSpinning(false);
-        setSpinDuration(3.2);
-      },
-      spinDuration() * 1000 + 100,
-    );
+  const cancelMotion = () => {
+    if (motionFrame !== undefined) window.cancelAnimationFrame(motionFrame);
+    motionFrame = undefined;
+    motion = undefined;
+    motionComplete = undefined;
   };
+  const animateTo = (to: number, duration: number, complete: () => void) => {
+    // Retarget from the current trajectory, not its old destination.
+    const now = performance.now();
+    const from = motion ? sampleMotion(motion, now) : position;
+    cancelMotion();
+    updatePosition(from);
+    motion = { from, to, started: now, duration };
+    motionComplete = complete;
+    const tick = (time: number) => {
+      if (!motion) return;
+      updatePosition(sampleMotion(motion, time));
+      if (time >= motion.started + motion.duration) {
+        const done = motionComplete;
+        cancelMotion();
+        done?.();
+      } else {
+        motionFrame = window.requestAnimationFrame(tick);
+      }
+    };
+    motionFrame = window.requestAnimationFrame(tick);
+  };
+  const selectedAt = (position: number) =>
+    activeDishes()[
+      modulo(Math.round(position / CARD_STEP), activeDishes().length)
+    ];
+  const finishSpin = () => {
+    setPicked(selectedAt(position));
+    setMessage(t("crystalHint"));
+    setMessageVersion((version) => version + 1);
+    setLoading(false);
+  };
+  const finishSettle = () => {
+    setPicked(selectedAt(position));
+    setSettling(false);
+  };
+  onCleanup(() => {
+    cancelMotion();
+    if (discardTimer !== undefined) window.clearTimeout(discardTimer);
+  });
   const discardPickedDish = (dragDistance = 0) => {
     const current = picked();
     if (!current) return;
@@ -456,73 +471,50 @@ export default function CrystalBall() {
     discardTimer = window.setTimeout(() => setDiscarded(), 260);
   };
   const boostSpin = () => {
-    if (!loading()) return;
-    const nextIndex = Math.min(activeSpinIndex + 8, choices().length - 3);
-    if (nextIndex === activeSpinIndex) return;
-    const current = choices()[activeSpinIndex];
-    const options = activeDishes().filter((dish) => dish.id !== current?.id);
-    const next = options[Math.floor(Math.random() * options.length)] ?? current;
-    setChoices((reel) =>
-      reel.map((dish, index) => (index === nextIndex ? next : dish)),
-    );
-    activeSpinIndex = nextIndex;
-    setSpinDuration(Math.max(1.1, spinDuration() - 0.4));
-    setOffset(activeSpinIndex * CARD_STEP);
-    finishSpin();
+    if (!loading() || !motion) return;
+    const target = motion.to + 8 * CARD_STEP;
+    const duration = Math.max(1100, motion.duration - 400);
+    animateTo(target, duration, finishSpin);
   };
   const spin = () => {
     if (loading()) {
       boostSpin();
       return;
     }
-    if (settling() || !activeDishes().length) return;
+    if (settling() || dragging() || !activeDishes().length) return;
     const availableDishes = activeDishes();
-    const startIndex = 2;
-    const winnerIndex = 24;
-    const current =
-      picked() ??
-      choices()[Math.round(offset() / CARD_STEP)] ??
-      availableDishes[0];
+    const current = selectedAt(position);
     const alternatives = availableDishes.filter(
       (dish) => dish.id !== current.id,
     );
     const next =
       alternatives[Math.floor(Math.random() * alternatives.length)] ?? current;
-    const reel = Array.from({ length: 128 }, (_, index) =>
-      index === winnerIndex
-        ? next
-        : index === startIndex
-          ? current
-          : availableDishes[Math.floor(Math.random() * availableDishes.length)],
-    );
-
-    activeSpinIndex = winnerIndex;
-    showingSpinReel = true;
     discardPickedDish();
-    setSpinDuration(3.2);
     setLoading(true);
-    setSpinning(false);
-    setChoices(reel);
-    setOffset(startIndex * CARD_STEP);
-    window.requestAnimationFrame(() => {
-      setSpinning(true);
-      window.requestAnimationFrame(() => {
-        setOffset(activeSpinIndex * CARD_STEP);
-        finishSpin();
-      });
-    });
+    animateTo(
+      forwardTarget(
+        position,
+        availableDishes.indexOf(next),
+        availableDishes.length,
+      ),
+      3200,
+      finishSpin,
+    );
   };
-  const beginDrag = (event: PointerEvent) => {
-    if (settling()) return;
-    // Preserve the completed spin reel until the user interacts again. Replacing
-    // it at spin completion recreates its adjacent cards and causes a visible flash.
-    if (!loading() && showingSpinReel && picked()) {
-      setChoices(makeManualReel(picked()!, activeDishes()));
-      setOffset(manualStartOffset());
-      showingSpinReel = false;
-    }
+  const beginDrag = (
+    event: PointerEvent & { currentTarget: HTMLDivElement },
+  ) => {
+    if (
+      settling() ||
+      !activeDishes().length ||
+      activePointer !== undefined ||
+      event.button !== 0
+    )
+      return;
+    activePointer = event.pointerId;
+    dragBoosting = loading();
     dragStartX = event.clientX;
-    dragStartOffset = offset();
+    dragStartOffset = position;
     lastDragX = event.clientX;
     lastDragTime = performance.now();
     dragVelocity = 0;
@@ -532,8 +524,8 @@ export default function CrystalBall() {
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   const drag = (event: PointerEvent) => {
-    if (!dragging()) return;
-    if (loading()) {
+    if (!dragging() || event.pointerId !== activePointer) return;
+    if (dragBoosting) {
       const movement = event.clientX - lastDragX;
       lastDragX = event.clientX;
       if (Math.abs(event.clientX - dragStartX) > 4) suppressSpin = true;
@@ -551,24 +543,26 @@ export default function CrystalBall() {
     lastDragTime = now;
     const distance = event.clientX - dragStartX;
     if (Math.abs(distance) > 4) suppressSpin = true;
-    setOffset(keepWithinLoop(dragStartOffset - distance));
+    updatePosition(dragStartOffset - distance);
   };
-  const endDrag = (event: PointerEvent) => {
-    if (!dragging()) return;
+  const endDrag = (event: PointerEvent & { currentTarget: HTMLDivElement }) => {
+    if (!dragging() || event.pointerId !== activePointer) return;
+    activePointer = undefined;
     setDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
-    if (loading()) return;
+    if (dragBoosting) return;
     if (!suppressSpin) return;
-    const projectedOffset = keepWithinLoop(offset() + dragVelocity * 260);
+    // A stale last movement must not fling the reel after the user has stopped.
+    const velocity =
+      event.type === "pointercancel" || performance.now() - lastDragTime > 100
+        ? 0
+        : dragVelocity;
+    const projectedOffset = position + velocity * 260;
     const index = Math.round(projectedOffset / CARD_STEP);
     setSettling(true);
-    setOffset(index * CARD_STEP);
     discardPickedDish();
-    window.setTimeout(() => {
-      setPicked(choices()[index]);
-      setSettling(false);
-    }, 520);
+    animateTo(index * CARD_STEP, 520, finishSettle);
   };
   return (
     <main class="phone-shell">
@@ -635,14 +629,9 @@ export default function CrystalBall() {
           >
             <div class="selection-marker" aria-hidden="true" />
             <div
-              class={{
-                "crystal-card-row": true,
-                spinning: spinning(),
-                settling: settling(),
-              }}
+              class="crystal-card-row"
               style={{
-                "--crystal-offset": `${offset()}px`,
-                "--crystal-spin-duration": `${spinDuration()}s`,
+                "--crystal-offset": `${renderedOffset()}px`,
               }}
             >
               <For each={choices()}>{(dish) => <DishCard dish={dish} />}</For>
