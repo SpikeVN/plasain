@@ -6,6 +6,7 @@ import {
   onSettled,
   Show,
 } from "solid-js";
+import { Meta, Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import Icon from "../components/Icon";
 import {
@@ -323,6 +324,11 @@ export default function Regressor() {
   });
   return (
     <main class="phone-shell">
+      <Title>Theo dõi dinh dưỡng — Plasain</Title>
+      <Meta
+        name="description"
+        content="Theo dõi dinh dưỡng và mục tiêu năng lượng hằng ngày theo cách phù hợp với bạn."
+      />
       <section class="feature-screen regressor-screen">
         <header class="regressor-header">
           <button

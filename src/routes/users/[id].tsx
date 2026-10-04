@@ -29,7 +29,7 @@ export default function User(props: RouteProps<"/users/:id">) {
 
   return (
     <section>
-      <Title>{`User ${props.params.id} - Solid App`}</Title>
+      <Title>{`Người dùng ${props.params.id} — Plasain`}</Title>
       <h2 class="my-2 text-2xl font-semibold">{user().name}</h2>
       <p>{user().title}</p>
       <p class="my-4">

@@ -8,7 +8,7 @@ import { paths } from "../../router";
 export default function UsersIndex() {
   return (
     <section>
-      <Title>Users - Solid App</Title>
+      <Title>Danh sách người dùng — Plasain</Title>
       <ul>
         <For each={Object.entries(users)}>
           {([id, user]) => (

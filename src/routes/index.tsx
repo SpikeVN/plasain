@@ -1,4 +1,4 @@
-import { Title } from "@solidjs/meta";
+import { Meta, Title } from "@solidjs/meta";
 import { createSignal, onSettled, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import Icon from "../components/Icon";
@@ -39,7 +39,11 @@ export default function Home() {
 
   return (
     <main class="phone-shell">
-      <Title>Plasain — mindful meals</Title>
+      <Title>Plasain — Lên kế hoạch bữa ăn nhẹ nhàng</Title>
+      <Meta
+        name="description"
+        content="Tìm cảm hứng cho bữa ăn, lên thực đơn và theo dõi dinh dưỡng mỗi ngày cùng Plasain."
+      />
       <Show when={!ready()}>
         <section class="loading-screen" aria-label="Plasain">
           <h1>Plasain</h1>

@@ -8,6 +8,7 @@ import {
   Show,
   untrack,
 } from "solid-js";
+import { Meta, Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import Cropper from "cropperjs";
 import "cropperjs/dist/cropper.css";
@@ -597,6 +598,11 @@ export default function CrystalBall() {
   };
   return (
     <main class="phone-shell">
+      <Title>Khám phá món ngon — Plasain</Title>
+      <Meta
+        name="description"
+        content="Khám phá, lưu lại và quản lý những món ăn bạn yêu thích cùng Plasain."
+      />
       <section class="feature-screen crystal-screen">
         <header class="crystal-header">
           <button

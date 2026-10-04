@@ -6,6 +6,7 @@ import {
   Show,
   untrack,
 } from "solid-js";
+import { Meta, Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import Icon from "../components/Icon";
 import AccountDialog from "../components/AccountDialog";
@@ -241,6 +242,11 @@ export default function Planner() {
 
   return (
     <main class="phone-shell">
+      <Title>Thực đơn của bạn — Plasain</Title>
+      <Meta
+        name="description"
+        content="Lên kế hoạch bữa ăn và sắp xếp thực đơn của bạn trong tuần với Plasain."
+      />
       <section class="feature-screen planner-screen">
         <header class="crystal-header">
           <button
