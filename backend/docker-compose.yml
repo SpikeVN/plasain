@@ -1,7 +1,7 @@
 services:
   api:
-    build:
-      context: .
+    image: ghcr.io/spikevn/plasain-api:latest
+    pull_policy: always
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
