@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
+from starlette.types import Scope
 
 from app.config import DISH_UPLOADS_PATH
 from app.database import initialize_database
@@ -31,9 +33,21 @@ app.include_router(auth.router)
 app.include_router(dishes.router)
 app.include_router(plans.router)
 app.include_router(regressor.router)
+
+
+class CachedStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = (
+                "public, max-age=86400, s-maxage=604800"
+            )
+        return response
+
+
 app.mount(
     "/uploads",
-    StaticFiles(directory=DISH_UPLOADS_PATH.parent, check_dir=False),
+    CachedStaticFiles(directory=DISH_UPLOADS_PATH.parent, check_dir=False),
     name="uploads",
 )
 

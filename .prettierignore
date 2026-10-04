@@ -3,5 +3,6 @@ dist/
 file-routes.d.ts
 backend/.venv/
 backend/uploads/
+public/dish-assets/
 backend/__pycache__/
 backend/app/__pycache__/

@@ -189,6 +189,7 @@ export function isDishImage(image: string) {
 }
 
 export function dishImageSource(image: string) {
+  if (image.startsWith("/dish-assets/")) return image;
   return image.startsWith("/") ? `${API_URL}${image}` : image;
 }
 

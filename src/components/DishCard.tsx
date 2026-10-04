@@ -4,6 +4,7 @@ import { dishImageSource, isDishImage, type Dish } from "../lib/api";
 export default function DishCard(props: {
   dish: Dish;
   class?: string | Record<string, boolean>;
+  loading?: "eager" | "lazy";
   onSelect?: () => void;
   onPointerDown?: () => void;
 }) {
@@ -21,6 +22,10 @@ export default function DishCard(props: {
           <img
             class="dish-photo"
             src={dishImageSource(props.dish.image)}
+            width="362"
+            height="362"
+            loading={props.loading ?? "lazy"}
+            decoding="async"
             alt=""
             draggable="false"
           />

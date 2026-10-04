@@ -179,7 +179,12 @@
     display: flex;
     width: max-content;
     gap: 13px;
-    transform: translateX(calc(-77.5px - var(--crystal-offset, 168px)));
+    transform: translateX(
+      calc(
+        -77.5px + var(--crystal-window-offset, 0px) -
+          var(--crystal-offset, 168px)
+      )
+    );
     transition: none;
   }
   .crystal-dish-card {
@@ -225,7 +230,7 @@
     --receipt-size: 8px;
     position: absolute;
     isolation: isolate;
-    z-index: 1;
+    z-index: 6;
     top: calc(50% + 143px);
     right: 28px;
     left: 28px;
@@ -635,7 +640,8 @@
   animation: crystal-message-fade 0.28s ease-out both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .crystal-result {
+  .crystal-result,
+  .crystal-message {
     animation: none;
   }
 }

@@ -63,7 +63,7 @@ describe("crystal carousel interactions", () => {
     await waitFor(() =>
       expect(
         view.container.querySelectorAll(".crystal-dish-card"),
-      ).toHaveLength(27),
+      ).toHaveLength(21),
     );
     const reel =
       view.container.querySelector<HTMLElement>(".crystal-card-row")!;
@@ -123,18 +123,44 @@ describe("crystal carousel interactions", () => {
       { scenario: "crystal-drag-spin" },
     );
     expect(artifact).toHaveNoDiagnostics();
-    expect(artifact).toStayWithinRerunBudget(0, { scope: /carouselReel/ });
+    expect(artifact).toStayWithinRerunBudget(50, {
+      scope: /carouselVirtualWindow/,
+    });
     expect(
       view.container.querySelector(
         ".crystal-result:not(.crystal-result-discarded)",
       ),
     ).not.toBeNull();
-    const centered = Math.round(view.position() / CARD_STEP);
+    const centered =
+      Math.round(view.position() / CARD_STEP) -
+      Math.round(
+        parseFloat(
+          view.reel.style.getPropertyValue("--crystal-window-offset"),
+        ) / CARD_STEP,
+      );
     expect(
       view.container.querySelector(
         ".crystal-result:not(.crystal-result-discarded) h2",
       )?.textContent,
     ).toBe(view.reel.children[centered].querySelector("h2")?.textContent);
+  });
+
+  test("loading text animates on entry without restarting on boosts", async () => {
+    const view = await mount();
+    const hint = view.container.querySelector(".crystal-instruction");
+    fireEvent.click(view.spin);
+    flush();
+    const loading = view.container.querySelector(".crystal-instruction");
+    expect(loading).not.toBe(hint);
+    expect(loading?.classList.contains("crystal-message")).toBe(true);
+    advance(16);
+    fireEvent.click(view.spin);
+    flush();
+    expect(view.container.querySelector(".crystal-instruction")).toBe(loading);
+    advance(3000);
+    expect(view.container.querySelector(".crystal-instruction")).not.toBe(
+      loading,
+    );
   });
 
   test("boost clicks and boost drags do not interrupt the visible trajectory", async () => {
@@ -178,6 +204,72 @@ describe("crystal carousel interactions", () => {
     view.unmount();
     expect(frames.size).toBe(0);
   });
+
+  test.each(["button", "drag"])(
+    "%s adds momentum while a previous drag is still settling",
+    async (input) => {
+      const view = await mount();
+      const { artifact } = await captureArtifact(
+        () => {
+          view.pointer("pointerdown", 300);
+          advance(16);
+          view.pointer("pointermove", 220);
+          view.pointer("pointerup", 220);
+          advance(16);
+          expect(view.spin.disabled).toBe(false);
+          const before = view.position();
+          if (input === "button") fireEvent.click(view.spin);
+          else {
+            view.pointer("pointerdown", 220);
+            view.pointer("pointermove", 124);
+            view.pointer("pointerup", 124);
+          }
+          flush();
+          expect(view.position()).toBeCloseTo(before);
+          advance(600);
+          expect(frames.size).toBe(1);
+          expect(
+            view.container.querySelector(
+              ".crystal-result:not(.crystal-result-discarded)",
+            ),
+          ).toBeNull();
+          advance(2400);
+          expect(frames.size).toBe(0);
+        },
+        { scenario: `crystal-settling-${input}-boost` },
+      );
+      expect(artifact).toHaveNoDiagnostics();
+      expect(artifact).toStayWithinRerunBudget(50, {
+        scope: /carouselVirtualWindow/,
+      });
+    },
+  );
+
+  test.each([0, 12, 192])(
+    "boost adds speed proportional to swipe distance (%s px; zero means button)",
+    async (distance) => {
+      const view = await mount();
+      fireEvent.click(view.spin);
+      advance(100);
+      const previous = view.position();
+      advance(1);
+      const before = view.position();
+      const speed = modulo(before - previous, 3 * CARD_STEP);
+      if (distance === 0) fireEvent.click(view.spin);
+      else {
+        view.pointer("pointerdown", 300);
+        view.pointer("pointermove", 300 - distance);
+        view.pointer("pointerup", 300 - distance);
+      }
+      flush();
+      expect(view.position()).toBeCloseTo(before);
+      advance(1);
+      const boostedSpeed = modulo(view.position() - before, 3 * CARD_STEP);
+      expect(boostedSpeed - speed).toBeGreaterThan(
+        3.4 * (distance ? distance / 96 : 1),
+      );
+    },
+  );
 
   test("changing filters cancels an in-flight spin without a late receipt", async () => {
     const view = await mount();

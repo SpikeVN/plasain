@@ -38,10 +38,12 @@ import {
 } from "../lib/carousel-motion";
 
 // Add, remove, or rewrite the messages shown after each completed spin.
-const LOOP_CYCLES = 9;
+const REEL_BUFFER = 10;
+const REEL_WINDOW_SIZE = REEL_BUFFER * 2 + 1;
 const builtinTagKeys: Record<string, string> = {
   balanced: "balanced",
   breakfast: "breakfast",
+  lunch: "lunch",
   "high protein": "highProtein",
   pescatarian: "pescatarian",
   "plant-based": "plantBased",
@@ -55,13 +57,21 @@ const tagLabel = (tag: string) => {
   return key ? t(key) : tag;
 };
 
-function DishVisual(props: { image: string; class: string }) {
+function DishVisual(props: {
+  image: string;
+  class: string;
+  loading?: "eager" | "lazy";
+}) {
   return (
     <Show when={isDishImage(props.image)} fallback={<span>{props.image}</span>}>
       {() => (
         <img
           class={props.class}
           src={dishImageSource(props.image)}
+          width="362"
+          height="362"
+          loading={props.loading ?? "lazy"}
+          decoding="async"
           alt=""
           draggable="false"
         />
@@ -202,7 +212,6 @@ export default function CrystalBall() {
   let lastDragX = 0;
   let lastDragTime = 0;
   let dragVelocity = 0;
-  let boostDistance = 0;
   let motion: Motion | undefined;
   // Imperative motion reads must see the latest sample even before Solid's
   // batched DOM update commits. The signal is the reactive rendering channel.
@@ -242,19 +251,30 @@ export default function CrystalBall() {
         })
       : dishes();
   });
-  const makeReel = (catalog: Dish[]) => {
-    return Array.from(
-      { length: catalog.length * LOOP_CYCLES },
-      (_, index) => catalog[index % catalog.length],
-    );
-  };
-  const choices = createMemo(() => makeReel(activeDishes()), {
-    name: "carouselReel",
-  });
   const renderedOffset = createMemo(
     () => reelOffset(offset(), activeDishes().length),
     { name: "carouselRenderedPosition" },
   );
+  const reelWindowStart = createMemo(
+    () => Math.floor(renderedOffset() / CARD_STEP) - REEL_BUFFER,
+    { name: "carouselWindowStart" },
+  );
+  const reelWindow = createMemo(
+    () => {
+      const catalog = activeDishes();
+      if (!catalog.length) return [];
+      const start = reelWindowStart();
+      return Array.from({ length: REEL_WINDOW_SIZE }, (_, slot) => {
+        const physicalIndex = start + slot;
+        return {
+          physicalIndex,
+          dish: catalog[modulo(physicalIndex, catalog.length)],
+        };
+      });
+    },
+    { name: "carouselVirtualWindow" },
+  );
+  const reelSlots = Array.from({ length: REEL_WINDOW_SIZE }, (_, slot) => slot);
   const loadDishes = async () =>
     fetchDishes().then((data) => {
       setDishes(data);
@@ -471,14 +491,30 @@ export default function CrystalBall() {
     setPicked();
     discardTimer = window.setTimeout(() => setDiscarded(), 260);
   };
-  const boostSpin = () => {
-    if (!loading() || !motion) return;
-    const target = motion.to + 8 * CARD_STEP;
-    const duration = Math.max(1100, motion.duration - 400);
+  const boostSpin = (strength = 1) => {
+    if (!motion) return;
+    const now = performance.now();
+    const progress = Math.max(
+      0,
+      Math.min(1, (now - motion.started) / motion.duration),
+    );
+    const velocity =
+      (3 * (motion.to - motion.from) * (1 - progress) ** 2) / motion.duration;
+    const current = sampleMotion(motion, now);
+    const duration = 2400;
+    // Add speed to the current trajectory, not distance to an old destination.
+    // Round forward so the reel still stops with a card under the marker.
+    const target =
+      Math.ceil(
+        (current + ((Math.max(0, velocity) + 3.5 * strength) * duration) / 3) /
+          CARD_STEP,
+      ) * CARD_STEP;
+    setSettling(false);
+    setLoading(true);
     animateTo(target, duration, finishSpin);
   };
   const spin = () => {
-    if (loading()) {
+    if (motion) {
       boostSpin();
       return;
     }
@@ -506,20 +542,18 @@ export default function CrystalBall() {
     event: PointerEvent & { currentTarget: HTMLDivElement },
   ) => {
     if (
-      settling() ||
       !activeDishes().length ||
       activePointer !== undefined ||
       event.button !== 0
     )
       return;
     activePointer = event.pointerId;
-    dragBoosting = loading();
+    dragBoosting = motion !== undefined;
     dragStartX = event.clientX;
     dragStartOffset = position;
     lastDragX = event.clientX;
     lastDragTime = performance.now();
     dragVelocity = 0;
-    boostDistance = 0;
     suppressSpin = false;
     setDragging(true);
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -530,11 +564,7 @@ export default function CrystalBall() {
       const movement = event.clientX - lastDragX;
       lastDragX = event.clientX;
       if (Math.abs(event.clientX - dragStartX) > 4) suppressSpin = true;
-      boostDistance += Math.abs(movement);
-      if (boostDistance >= 32) {
-        boostSpin();
-        boostDistance = 0;
-      }
+      if (suppressSpin && movement !== 0) boostSpin(Math.abs(movement) / 96);
       return;
     }
     const now = performance.now();
@@ -608,12 +638,14 @@ export default function CrystalBall() {
               </Show>
             }
           >
-            <p class="crystal-instruction">{t("crystalLoading")}</p>
+            <p class="crystal-instruction crystal-message">
+              {t("crystalLoading")}
+            </p>
           </Show>
           <button
             class="crystal-spin-button"
             onClick={spin}
-            disabled={settling() || !activeDishes().length}
+            disabled={!activeDishes().length}
             aria-label={loading() ? t("boostLabel") : t("spinLabel")}
           >
             {t("spin")}
@@ -622,7 +654,7 @@ export default function CrystalBall() {
             class={{ "crystal-roulette": true, dragging: dragging() }}
             role="group"
             aria-label={loading() ? t("dragBoostLabel") : t("dragLabel")}
-            aria-disabled={settling() || !activeDishes().length}
+            aria-disabled={!activeDishes().length}
             onPointerDown={beginDrag}
             onPointerMove={drag}
             onPointerUp={endDrag}
@@ -633,9 +665,26 @@ export default function CrystalBall() {
               class="crystal-card-row"
               style={{
                 "--crystal-offset": `${renderedOffset()}px`,
+                "--crystal-window-offset": `${reelWindowStart() * CARD_STEP}px`,
               }}
             >
-              <For each={choices()}>{(dish) => <DishCard dish={dish} />}</For>
+              <Show when={activeDishes().length}>
+                <For each={reelSlots}>
+                  {(slot) => (
+                    <DishCard
+                      dish={reelWindow()[slot].dish}
+                      loading={
+                        Math.abs(
+                          reelWindow()[slot].physicalIndex -
+                            renderedOffset() / CARD_STEP,
+                        ) <= 2
+                          ? "eager"
+                          : "lazy"
+                      }
+                    />
+                  )}
+                </For>
+              </Show>
             </div>
           </div>
           <Show when={discarded()} keyed>
