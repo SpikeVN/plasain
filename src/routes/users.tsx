@@ -1,4 +1,4 @@
-import type { ParentProps } from 'solid-js';
+import type { ParentProps } from "solid-js";
 
 // A layout route: pairing users.tsx with the users/ directory nests every
 // page inside it under this component.

@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 import re
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 import httpx
@@ -47,11 +47,23 @@ def local_reply(meals: list[dict[str, Any]], prompt: str, language: str) -> str:
     return f"I found {len(meals)} dishes that fit your request."
 
 
-def save_plan(goal: str, plan: dict[str, Any], user_id: str) -> None:
+def save_plan(
+    goal: str,
+    plan: dict[str, Any],
+    user_id: str,
+    plan_date: date | None = None,
+) -> None:
     with get_connection() as connection:
         connection.execute(
-            "INSERT INTO plans (user_id, goal, meals_json, source, created_at) VALUES (?, ?, ?, ?, ?)",
-            (user_id, goal, json.dumps(plan["meals"], ensure_ascii=False), plan["source"], datetime.now(UTC).isoformat()),
+            "INSERT INTO plans (user_id, goal, meals_json, source, plan_date, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                user_id,
+                goal,
+                json.dumps(plan["meals"], ensure_ascii=False),
+                plan["source"],
+                (plan_date or date.today()).isoformat(),
+                datetime.now(UTC).isoformat(),
+            ),
         )
 
 

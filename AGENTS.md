@@ -3,6 +3,7 @@
 ## Development server
 
 - When debugging or verifying this project locally, run it with `bun run dev` and use the running Vite development server. Do not rely on the production build or preview server for interactive debugging unless specifically asked.
+- Format maintained frontend and configuration files with `bunx prettier --write . --ignore-unknown` before completing work. Keep `.prettierignore` current; it must exclude generated output, virtual environments, and dependencies.
 
 This is a SolidJS 2.x project. Solid is not React: components run once (there is no re-render), reactivity is fine-grained through signals, and effects/memos have Solid-specific semantics. Do not port React patterns.
 

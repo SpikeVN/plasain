@@ -23,14 +23,49 @@
   .planner-day-heading {
     display: flex;
     align-items: end;
+    margin-bottom: 5px;
+  }
+  .planner-day-toolbar {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 12px;
+  }
+  .planner-date-controls {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin: 0;
+  }
+  .planner-today-button {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #76613c;
+    cursor: pointer;
+    font-size: 11px;
+    place-items: center;
+  }
+  .planner-today-button:hover,
+  .planner-today-button:focus-visible {
+    background: #f1ecdc;
   }
   .planner-day-actions {
     display: flex;
     align-items: center;
     gap: 7px;
+  }
+  .planner-date-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
   }
   .planner-day-heading p {
     margin: 0 0 3px;
@@ -43,9 +78,11 @@
     margin: 0;
     color: #17140e;
     font: 700 16px var(--font-display);
+    white-space: nowrap;
   }
   .planner-manual-trigger,
-  .planner-edit-trigger {
+  .planner-edit-trigger,
+  .planner-date-picker {
     display: grid;
     width: 32px;
     height: 32px;
@@ -487,6 +524,13 @@
     .planner-day {
       width: auto;
       margin: 24px 24px 130px;
+    }
+    .planner-day-heading {
+      align-items: flex-start;
+    }
+    .planner-date-heading {
+      min-width: 0;
+      flex: 1;
     }
     .planner-meal-row {
       grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -15,6 +15,12 @@ messages:
   choosePhoto: Choose a profile photo
   displayName: Display name
   height: Height (cm)
+  birthYear: Birth year
+  activityLevel: Activity level
+  activityLow: Low activity
+  activityLight: Light activity
+  activityModerate: Moderate activity
+  activityHigh: High activity
   language: Language
   biologicalSex: Biological sex
   sexHelp: Used only to calculate your Mifflin–St Jeor TDEE.
@@ -46,6 +52,57 @@ messages:
   crystalDescription: Find food that fits your nutrition needs and current plan.
   plannerDescription: Organize and understand your nutrition plan.
   regressorDescription: Predict your nutrition and fitness progress.
+  regressorTitle: Regressor
+  regressorChartLabel: 90-day projected weight trend. Scroll or pinch to zoom.
+  regressorDay: Day
+  regressorAssumptions: Your assumptions
+  regressorHeight: Height
+  regressorAge: Age
+  regressorYears: years
+  regressorSex: Sex
+  regressorActivity: Activity
+  regressorSelectSex: Select sex
+  regressorSelectActivity: Select activity
+  regressorCheckins: Check-ins
+  regressorCheckinSource: Check-in source
+  regressorManualInput: Manual input
+  regressorPlannerHistory: Planner history
+  regressorManualHelp: Enter at least seven days. Oldest first; add intake alongside each weigh-in.
+  regressorCheckin: Check-in
+  regressorDate: date
+  regressorWeight: Weight
+  regressorCalories: Calories
+  regressorProtein: Protein
+  regressorCarbs: Carbs
+  regressorSodium: Sodium
+  regressorPlannerHelp: Use saved Planner days for intake. Add weigh-ins and sodium in Manual input.
+  regressorFrom: From
+  regressorTo: To
+  regressorImportRange: Import this range
+  regressorDailyTarget: Daily calorie target
+  regressorKcalPerDay: kcal / day
+  regressorFromTdee: from estimated TDEE
+  regressorInitial: initial
+  regressorChange: change
+  regressorLoss: loss
+  regressorGain: gain
+  regressorRate: rate
+  regressorHistorian: Historian
+  regressorTimeMachine: Time Machine
+  regressorEstimatedTdee: Estimated TDEE
+  regressorNinetyDayEstimate: 90-day estimate
+  regressorMetabolicFloor: Metabolic floor
+  regressorProjectionNote: The curve slows as predicted expenditure approaches your selected intake; it is a planning tool, not a guaranteed outcome.
+  regressorDataNeeded: Data needed to calculate your projection
+  regressorCheckinsNeeded: complete check-ins needed
+  regressorBaselineHelp: Add seven complete check-ins to calculate your baseline.
+  regressorProjectionError: Could not calculate your projection.
+  regressorPlannerSignIn: Sign in to use your Planner history.
+  regressorPlannerDateOrder: Choose an end date after the start date.
+  regressorPlannerMinimum: This range needs at least seven saved Planner days.
+  regressorPlannerMaximum: Choose a range with 60 days or fewer.
+  regressorPlannerImported: Calories and macros imported. Add weigh-ins and sodium in Manual input.
+  regressorPlannerLoadError: Could not load Planner history.
   comingSoon: Coming soon — we are growing this feature.
   homeHint: Tap a card to explore its feature.
   planner: Your Planner
@@ -107,7 +164,10 @@ messages:
   clearFilters: Clear filters
   noMatchingDishes: No dishes match these tags.
   today: Today
-  plannerDate: Monday, 05/01
+  plannerDateLabel: Plan date
+  previousDay: Previous day
+  nextDay: Next day
+  chooseDate: Choose date
   logMeal: Log meal
   addDishFromCatalog: Add a dish from your Crystal Ball
   chooseDish: Choose a dish

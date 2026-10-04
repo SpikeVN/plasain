@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -43,18 +44,32 @@ async def save_manual_plan(request: PlanSaveRequest, user: sqlite3.Row = Depends
     meal_ids = (meal.get("id") for meal in request.meals)
     meals = [allowed[meal_id] for meal_id in meal_ids if meal_id in allowed]
     result = {"meals": meals, "source": "manual"}
-    save_plan(request.goal, result, user["id"])
+    save_plan(request.goal, result, user["id"], request.plan_date)
     return result
 
 
 @router.get("/plans")
-async def list_plans(user: sqlite3.Row = Depends(require_user)) -> dict[str, list[dict[str, Any]]]:
+async def list_plans(
+    plan_date: date | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    user: sqlite3.Row = Depends(require_user),
+) -> dict[str, list[dict[str, Any]]]:
     with get_connection() as connection:
-        rows = connection.execute(
-            "SELECT id, goal, meals_json, source, created_at FROM plans WHERE user_id = ? ORDER BY id DESC LIMIT 50", (user["id"],)
-        ).fetchall()
+        query = "SELECT id, goal, meals_json, source, plan_date, created_at FROM plans WHERE user_id = ?"
+        parameters: list[str] = [user["id"]]
+        if plan_date:
+            query += " AND plan_date = ?"
+            parameters.append(plan_date.isoformat())
+        if start_date:
+            query += " AND plan_date >= ?"
+            parameters.append(start_date.isoformat())
+        if end_date:
+            query += " AND plan_date <= ?"
+            parameters.append(end_date.isoformat())
+        rows = connection.execute(f"{query} ORDER BY id DESC LIMIT 50", parameters).fetchall()
     return {"plans": [
         {"id": row["id"], "goal": row["goal"], "meals": json.loads(row["meals_json"]),
-         "source": row["source"], "created_at": row["created_at"]}
+          "source": row["source"], "plan_date": row["plan_date"], "created_at": row["created_at"]}
         for row in rows
     ]}

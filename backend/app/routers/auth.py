@@ -14,12 +14,12 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
 def auth_response(user_id: str, username: str) -> dict[str, object]:
     with get_connection() as connection:
-        user = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, avatar FROM users WHERE id = ?", (user_id,)).fetchone()
+        user = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, birth_year, activity_level, avatar FROM users WHERE id = ?", (user_id,)).fetchone()
     return {"token": issue_session(user_id), **profile_response(user)}
 
 
 def profile_response(user: sqlite3.Row) -> dict[str, object]:
-    return {"user": {"id": user["id"], "username": user["username"], "display_name": user["display_name"] or user["username"], "height_cm": user["height_cm"], "biological_sex": user["biological_sex"], "avatar": user["avatar"]}}
+    return {"user": {"id": user["id"], "username": user["username"], "display_name": user["display_name"] or user["username"], "height_cm": user["height_cm"], "biological_sex": user["biological_sex"], "birth_year": user["birth_year"], "activity_level": user["activity_level"], "avatar": user["avatar"]}}
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -51,7 +51,7 @@ async def login(credentials: Credentials) -> dict[str, object]:
 @router.get("/me")
 async def me(user: sqlite3.Row = Depends(require_user)) -> dict[str, object]:
     with get_connection() as connection:
-        profile = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, avatar FROM users WHERE id = ?", (user["id"],)).fetchone()
+        profile = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, birth_year, activity_level, avatar FROM users WHERE id = ?", (user["id"],)).fetchone()
     return profile_response(profile)
 
 
@@ -61,10 +61,10 @@ async def update_profile(profile: ProfileUpdate, user: sqlite3.Row = Depends(req
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Avatar must be an image.")
     with get_connection() as connection:
         if profile.avatar is None:
-            connection.execute("UPDATE users SET display_name = ?, height_cm = ?, biological_sex = ? WHERE id = ?", (profile.display_name, profile.height_cm, profile.biological_sex, user["id"]))
+            connection.execute("UPDATE users SET display_name = ?, height_cm = ?, biological_sex = ?, birth_year = ?, activity_level = ? WHERE id = ?", (profile.display_name, profile.height_cm, profile.biological_sex, profile.birth_year, profile.activity_level, user["id"]))
         else:
-            connection.execute("UPDATE users SET display_name = ?, height_cm = ?, biological_sex = ?, avatar = ? WHERE id = ?", (profile.display_name, profile.height_cm, profile.biological_sex, profile.avatar, user["id"]))
-        updated = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, avatar FROM users WHERE id = ?", (user["id"],)).fetchone()
+            connection.execute("UPDATE users SET display_name = ?, height_cm = ?, biological_sex = ?, birth_year = ?, activity_level = ?, avatar = ? WHERE id = ?", (profile.display_name, profile.height_cm, profile.biological_sex, profile.birth_year, profile.activity_level, profile.avatar, user["id"]))
+        updated = connection.execute("SELECT id, username, display_name, height_cm, biological_sex, birth_year, activity_level, avatar FROM users WHERE id = ?", (user["id"],)).fetchone()
     return profile_response(updated)
 
 

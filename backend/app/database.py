@@ -22,10 +22,17 @@ def initialize_database() -> None:
                 display_name TEXT,
                 height_cm INTEGER,
                 biological_sex TEXT,
+                birth_year INTEGER,
+                activity_level REAL,
                 avatar TEXT,
                 created_at TEXT NOT NULL
             )
         """)
+        user_columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+        if "birth_year" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN birth_year INTEGER")
+        if "activity_level" not in user_columns:
+            connection.execute("ALTER TABLE users ADD COLUMN activity_level REAL")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
                 token_hash BLOB PRIMARY KEY,
@@ -60,6 +67,16 @@ def initialize_database() -> None:
                 goal TEXT NOT NULL,
                 meals_json TEXT NOT NULL,
                 source TEXT NOT NULL,
+                plan_date TEXT NOT NULL,
                 created_at TEXT NOT NULL
             )
         """)
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(plans)")}
+        if "plan_date" not in columns:
+            connection.execute("ALTER TABLE plans ADD COLUMN plan_date TEXT")
+            connection.execute(
+                "UPDATE plans SET plan_date = substr(created_at, 1, 10) WHERE plan_date IS NULL"
+            )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS plans_user_date_idx ON plans (user_id, plan_date, id DESC)"
+        )

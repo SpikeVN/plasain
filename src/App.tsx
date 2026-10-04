@@ -1,6 +1,6 @@
-import { Loading } from 'solid-js';
-import { Router } from './router';
-import './App.css';
+import { Loading } from "solid-js";
+import { Router } from "./router";
+import "./App.css";
 
 export default function App() {
   return (

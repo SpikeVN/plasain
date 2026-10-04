@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-declare module '*.yaml' {
+declare module "*.yaml" {
   const catalog: unknown;
   export default catalog;
 }

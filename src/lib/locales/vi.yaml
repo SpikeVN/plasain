@@ -15,6 +15,12 @@ messages:
   choosePhoto: Chọn ảnh đại diện
   displayName: Tên hiển thị
   height: Chiều cao (cm)
+  birthYear: Năm sinh
+  activityLevel: Mức độ hoạt động
+  activityLow: Ít vận động
+  activityLight: Hoạt động nhẹ
+  activityModerate: Hoạt động vừa phải
+  activityHigh: Hoạt động nhiều
   language: Ngôn ngữ
   biologicalSex: Giới tính sinh học
   sexHelp: Chỉ dùng để tính TDEE theo Mifflin–St Jeor.
@@ -46,6 +52,57 @@ messages:
   crystalDescription: Tìm món ăn phù hợp với nhu cầu dinh dưỡng và kế hoạch hiện tại.
   plannerDescription: Sắp xếp và theo dõi kế hoạch dinh dưỡng của bạn.
   regressorDescription: Dự đoán tiến độ dinh dưỡng và thể hình của bạn.
+  regressorTitle: Regressor
+  regressorChartLabel: Xu hướng cân nặng dự đoán trong 90 ngày. Cuộn chuột hoặc chụm hai ngón để phóng to.
+  regressorDay: Ngày
+  regressorAssumptions: Thông số của bạn
+  regressorHeight: Chiều cao
+  regressorAge: Tuổi
+  regressorYears: tuổi
+  regressorSex: Giới tính
+  regressorActivity: Hoạt động
+  regressorSelectSex: Chọn giới tính
+  regressorSelectActivity: Chọn mức hoạt động
+  regressorCheckins: Nhật ký
+  regressorCheckinSource: Nguồn nhật ký
+  regressorManualInput: Nhập thủ công
+  regressorPlannerHistory: Lịch sử kế hoạch
+  regressorManualHelp: Nhập ít nhất bảy ngày, từ cũ nhất đến mới nhất; thêm lượng ăn cùng mỗi lần cân.
+  regressorCheckin: Nhật ký
+  regressorDate: ngày
+  regressorWeight: Cân nặng
+  regressorCalories: Calo
+  regressorProtein: Đạm
+  regressorCarbs: Carb
+  regressorSodium: Natri
+  regressorPlannerHelp: Dùng các ngày Kế hoạch đã lưu để lấy lượng ăn. Thêm cân nặng và natri trong mục Nhập thủ công.
+  regressorFrom: Từ
+  regressorTo: Đến
+  regressorImportRange: Nhập khoảng này
+  regressorDailyTarget: Mục tiêu calo mỗi ngày
+  regressorKcalPerDay: kcal / ngày
+  regressorFromTdee: so với TDEE ước tính
+  regressorInitial: ban đầu
+  regressorChange: thay đổi
+  regressorLoss: giảm
+  regressorGain: tăng
+  regressorRate: tốc độ
+  regressorHistorian: Lịch sử
+  regressorTimeMachine: Cỗ máy thời gian
+  regressorEstimatedTdee: TDEE ước tính
+  regressorNinetyDayEstimate: Ước tính 90 ngày
+  regressorMetabolicFloor: Ngưỡng chuyển hóa
+  regressorProjectionNote: Đường cong chậm dần khi mức tiêu hao dự đoán tiến gần lượng ăn đã chọn; đây là công cụ lập kế hoạch, không phải kết quả được đảm bảo.
+  regressorDataNeeded: Dữ liệu cần có để tính dự báo
+  regressorCheckinsNeeded: nhật ký đầy đủ còn thiếu
+  regressorBaselineHelp: Thêm bảy nhật ký đầy đủ để tính đường cơ sở.
+  regressorProjectionError: Không thể tính dự báo của bạn.
+  regressorPlannerSignIn: Đăng nhập để dùng lịch sử Kế hoạch.
+  regressorPlannerDateOrder: Chọn ngày kết thúc sau ngày bắt đầu.
+  regressorPlannerMinimum: Khoảng này cần ít nhất bảy ngày Kế hoạch đã lưu.
+  regressorPlannerMaximum: Chọn khoảng tối đa 60 ngày.
+  regressorPlannerImported: Đã nhập calo và chất đa lượng. Thêm cân nặng và natri trong mục Nhập thủ công.
+  regressorPlannerLoadError: Không thể tải lịch sử Kế hoạch.
   comingSoon: Sắp ra mắt — chúng tôi đang phát triển tính năng này.
   homeHint: Chạm vào thẻ để khám phá tính năng.
   planner: Kế hoạch của bạn
@@ -107,7 +164,10 @@ messages:
   clearFilters: Xóa bộ lọc
   noMatchingDishes: Không có món ăn phù hợp với các thẻ này.
   today: Hôm nay
-  plannerDate: Thứ Hai, 05/01
+  plannerDateLabel: Ngày kế hoạch
+  previousDay: Ngày trước
+  nextDay: Ngày tiếp theo
+  chooseDate: Chọn ngày
   logMeal: Ghi bữa ăn
   addDishFromCatalog: Thêm món từ Quả cầu pha lê của bạn
   chooseDish: Chọn món ăn

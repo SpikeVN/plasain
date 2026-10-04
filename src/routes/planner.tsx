@@ -1,4 +1,11 @@
-import { createMemo, createSignal, For, onSettled, Show } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  For,
+  onSettled,
+  Show,
+  untrack,
+} from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import Icon from "../components/Icon";
 import AccountDialog from "../components/AccountDialog";
@@ -18,6 +25,7 @@ import { locale, t } from "../lib/i18n";
 export default function Planner() {
   const navigate = useNavigate();
   let promptTextarea: HTMLTextAreaElement | undefined;
+  let planDateInput: HTMLInputElement | undefined;
   let recommendationStartY = 0;
   let recommendationLastY = 0;
   let recommendationLastMoveTime = 0;
@@ -42,7 +50,21 @@ export default function Planner() {
   const [user, setUser] = createSignal<User | null>(savedUser());
   const [accountOpen, setAccountOpen] = createSignal(!savedUser());
   const [sessionChecked, setSessionChecked] = createSignal(false);
+  const dateKey = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const today = dateKey(new Date());
+  const [selectedDate, setSelectedDate] = createSignal(today);
   const goal = () => "Balanced";
+  const formattedPlanDate = () =>
+    new Intl.DateTimeFormat(locale() === "vi" ? "vi-VN" : "en-US", {
+      weekday: "long",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(`${selectedDate()}T00:00:00`));
   const matchingDishes = createMemo(() => {
     const query = manualSearch().trim().toLocaleLowerCase();
     return query
@@ -54,9 +76,13 @@ export default function Planner() {
       : dishes();
   });
 
-  const loadPlanner = async () => {
+  const loadPlanner = async (planDate: string) => {
     try {
-      const [catalog, plans] = await Promise.all([fetchDishes(), fetchPlans()]);
+      const [catalog, plans] = await Promise.all([
+        fetchDishes(),
+        fetchPlans(planDate),
+      ]);
+      if (planDate !== untrack(selectedDate)) return;
       setDishes(catalog);
       setScheduled(plans.find((plan) => plan.source === "manual")?.meals ?? []);
     } catch (error) {
@@ -64,10 +90,11 @@ export default function Planner() {
     }
   };
   onSettled(() => {
+    const initialPlanDate = untrack(selectedDate);
     void currentUser().then((verifiedUser) => {
       setUser(verifiedUser);
       setSessionChecked(true);
-      if (verifiedUser) void loadPlanner();
+      if (verifiedUser) void loadPlanner(initialPlanDate);
       else setAccountOpen(true);
     });
   });
@@ -75,10 +102,29 @@ export default function Planner() {
   const saveSchedule = async (next: Dish[]) => {
     setScheduled(next);
     try {
-      await savePlan(goal(), next);
+      await savePlan(goal(), next, selectedDate());
     } catch (error) {
       setNotice(error instanceof Error ? error.message : t("plannerSaveError"));
     }
+  };
+  const selectDate = (nextDate: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDate) || nextDate === selectedDate())
+      return;
+    setSelectedDate(nextDate);
+    setEditing(false);
+    setScheduled([]);
+    setRecommendations([]);
+    setRecommendationReply("");
+    void loadPlanner(nextDate);
+  };
+  const moveDate = (days: number) => {
+    const next = new Date(`${selectedDate()}T00:00:00`);
+    next.setDate(next.getDate() + days);
+    selectDate(dateKey(next));
+  };
+  const openDatePicker = () => {
+    if (planDateInput?.showPicker) planDateInput.showPicker();
+    else planDateInput?.click();
   };
   const logManualDish = (dish: Dish) => {
     if (scheduled().some((meal) => meal.id === dish.id)) {
@@ -194,7 +240,7 @@ export default function Planner() {
   };
 
   return (
-    <main class="phone-shell planner-shell">
+    <main class="phone-shell">
       <section class="feature-screen planner-screen">
         <header class="crystal-header">
           <button
@@ -232,9 +278,59 @@ export default function Planner() {
           <section class="planner-canvas" aria-label="Meal plan">
             <div class="planner-day">
               <div class="planner-day-heading">
-                <div>
-                  <p>{t("today")}</p>
-                  <h2>{t("plannerDate")}</h2>
+                <div class="planner-date-heading">
+                  <p>
+                    {selectedDate() === today
+                      ? t("today")
+                      : t("plannerDateLabel")}
+                  </p>
+                  <h2>{formattedPlanDate()}</h2>
+                </div>
+              </div>
+              <div class="planner-day-toolbar">
+                <div class="planner-date-controls">
+                  <input
+                    ref={(element) => {
+                      planDateInput = element;
+                    }}
+                    class="planner-date-input"
+                    type="date"
+                    value={selectedDate()}
+                    onInput={(event) => selectDate(event.currentTarget.value)}
+                    tabindex="-1"
+                  />
+                  <button
+                    class="planner-today-button"
+                    type="button"
+                    onClick={() => selectDate(today)}
+                    aria-label={t("today")}
+                  >
+                    <Icon name="rotate" size={16} />
+                  </button>
+                  <button
+                    class="planner-date-picker"
+                    type="button"
+                    onClick={() => moveDate(-1)}
+                    aria-label={t("previousDay")}
+                  >
+                    <Icon name="arrowLeft" size={16} />
+                  </button>
+                  <button
+                    class="planner-date-picker"
+                    type="button"
+                    onClick={openDatePicker}
+                    aria-label={t("chooseDate")}
+                  >
+                    <Icon name="calendar" size={18} />
+                  </button>
+                  <button
+                    class="planner-date-picker"
+                    type="button"
+                    onClick={() => moveDate(1)}
+                    aria-label={t("nextDay")}
+                  >
+                    <Icon name="arrowRight" size={16} />
+                  </button>
                 </div>
                 <div class="planner-day-actions">
                   <button
@@ -251,7 +347,7 @@ export default function Planner() {
                     onClick={() => setManualOpen(true)}
                     aria-label={t("logMeal")}
                   >
-                    <Icon name="calendar" size={18} />
+                    <Icon name="plus" size={20} />
                   </button>
                 </div>
               </div>

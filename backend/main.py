@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import BACKEND_ROOT
 from app.database import initialize_database
-from app.routers import auth, dishes, plans
+from app.routers import auth, dishes, plans, regressor
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(dishes.router)
 app.include_router(plans.router)
+app.include_router(regressor.router)
 app.mount("/uploads", StaticFiles(directory=BACKEND_ROOT / "uploads", check_dir=False), name="uploads")
 
 

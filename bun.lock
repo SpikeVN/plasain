@@ -8,6 +8,7 @@
         "@solidjs/meta": "^1.0.0-next.2",
         "@solidjs/router": "^2.0.0-next.31",
         "@solidjs/web": "^2.0.0-rc.11",
+        "@types/node": "^26.6.4",
         "cropperjs": "1.6.2",
         "lucide": "^1.51.0",
         "solid-js": "^2.0.0-rc.11",
@@ -342,6 +343,8 @@
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 
     "@types/micromatch": ["@types/micromatch@4.0.10", "", { "dependencies": { "@types/braces": "3.0.5" } }, "sha512-5jOhFDElqr4DKTrTEbnW8DZ4Hz5LRUEmyrGpCMrD/NphYv3nUnaF08xmSLx1rGGnyEs/kFnhiw6dCgcDqMr5PQ=="],
+
+    "@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
     "@typescript-eslint/project-service": ["@typescript-eslint/project-service@8.70.0", "", { "dependencies": { "@typescript-eslint/tsconfig-utils": "8.70.0", "@typescript-eslint/types": "8.70.0", "debug": "4.4.3" }, "peerDependencies": { "typescript": "5.9.3" } }, "sha512-hFHbTNqhU9G+2eKFXCBVb1tjFT/LceiJ4+HfLO4pTpDI0KHi6iajpcFFkaSQ9gXmCh7n82A0PthaayEdN6mspQ=="],
 
@@ -744,6 +747,8 @@
     "type-check": ["type-check@0.4.0", "", { "dependencies": { "prelude-ls": "1.2.1" } }, "sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "update-browserslist-db": ["update-browserslist-db@1.3.3", "", { "dependencies": { "escalade": "3.2.0", "picocolors": "1.1.1" }, "peerDependencies": { "browserslist": "4.29.0" }, "bin": { "update-browserslist-db": "cli.js" } }, "sha512-pJ2sYawQS0R/WI928Gj5GlPhTGzbMelq0+4INtSYNDV9ErKJcX6xjGWkoG/VnB3dpUm00zALaqkrUD77pO5TDQ=="],
 

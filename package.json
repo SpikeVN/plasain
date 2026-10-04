@@ -30,6 +30,7 @@
     "@solidjs/meta": "^1.0.0-next.2",
     "@solidjs/router": "^2.0.0-next.31",
     "@solidjs/web": "^2.0.0-rc.11",
+    "@types/node": "^26.6.4",
     "cropperjs": "1.6.2",
     "lucide": "^1.51.0",
     "solid-js": "^2.0.0-rc.11",

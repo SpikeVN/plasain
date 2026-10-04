@@ -1,8 +1,8 @@
-import { Title } from '@solidjs/meta';
-import { query, type RouteDefinition, type RouteProps } from '@solidjs/router';
-import { createMemo } from 'solid-js';
-import users from '../../data/users.json';
-import { paths } from '../../router';
+import { Title } from "@solidjs/meta";
+import { query, type RouteDefinition, type RouteProps } from "@solidjs/router";
+import { createMemo } from "solid-js";
+import users from "../../data/users.json";
+import { paths } from "../../router";
 
 // Async data loading: a query (cached per key) read through a memo — the
 // surrounding <Loading> boundary (in App.tsx) shows its fallback until the
@@ -13,18 +13,18 @@ import { paths } from '../../router';
 const getUser = query(async (id: string) => {
   return (
     users[id as keyof typeof users] ?? {
-      name: 'Unknown',
-      title: 'No such user',
+      name: "Unknown",
+      title: "No such user",
     }
   );
-}, 'user');
+}, "user");
 
 // Starts the fetch as soon as navigation begins, before the page renders.
 export const route = {
   preload: ({ params }) => void getUser(params.id!),
 } satisfies RouteDefinition;
 
-export default function User(props: RouteProps<'/users/:id'>) {
+export default function User(props: RouteProps<"/users/:id">) {
   const user = createMemo(() => getUser(props.params.id));
 
   return (
