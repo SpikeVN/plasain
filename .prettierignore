@@ -1,5 +1,6 @@
 node_modules/
 dist/
+file-routes.d.ts
 backend/.venv/
 backend/uploads/
 backend/__pycache__/
