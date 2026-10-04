@@ -60,5 +60,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 87e2f771c2be1039ea0dba4956b6eb11
+          packageManager: bun
           wranglerVersion: 4.112.0
           command: pages deploy dist/client --project-name plasain --branch main
