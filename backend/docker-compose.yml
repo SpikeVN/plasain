@@ -6,10 +6,10 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CORS_ORIGINS: https://plasain.falcolabs.org
       DISH_UPLOADS_PATH: /data/uploads/dishes
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
+      OPENROUTER_MODEL: openrouter/free
       SQLITE_DB_PATH: /data/plasain.db
     volumes:
       - backend-data:/data
