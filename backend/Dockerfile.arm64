@@ -1,12 +1,11 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN apk add --no-cache libstdc++ \
-    && pip install --no-cache-dir --only-binary=:all: -r requirements.txt
+RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
 
 COPY --chown=10001:10001 main.py dishes.json ./
 COPY --chown=10001:10001 app ./app

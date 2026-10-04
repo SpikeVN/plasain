@@ -1,14 +1,14 @@
-name: Backend Alpine ARM64
+name: Backend ARM64
 
 on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/backend-alpine-arm64.yml"
+      - ".github/workflows/backend-arm64.yml"
       - "backend/**"
   pull_request:
     paths:
-      - ".github/workflows/backend-alpine-arm64.yml"
+      - ".github/workflows/backend-arm64.yml"
       - "backend/**"
   workflow_dispatch:
 
@@ -29,8 +29,8 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=raw,value=alpine-arm64
-            type=sha,prefix=alpine-arm64-
+            type=raw,value=arm64
+            type=sha,prefix=arm64-
       - uses: docker/login-action@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
@@ -40,7 +40,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: ./backend
-          file: ./backend/Dockerfile.alpine
+          file: ./backend/Dockerfile.arm64
           platforms: linux/arm64
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
