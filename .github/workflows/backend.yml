@@ -3,7 +3,13 @@ name: Backend
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/backend.yml"
+      - "backend/**"
   pull_request:
+    paths:
+      - ".github/workflows/backend.yml"
+      - "backend/**"
   workflow_dispatch:
 
 permissions:
